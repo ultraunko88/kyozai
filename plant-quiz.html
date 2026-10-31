@@ -1,0 +1,470 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ミドリの植物クイズ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght@500&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+/* 横長スクリーン：左にキャラクター、右に吹き出しと操作。せまい画面では縦に積む */
+:root{
+  --bg:#e8eff8; --surface:#ffffff; --ink:#1b3560; --muted:#5a6f8e;
+  --accent:#2f6fd0; --accent-ink:#ffffff; --good:#23845a; --warn:#b85f12; --line:#c9d7ea;
+  --display:"Kiwi Maru","Zen Maru Gothic","Hiragino Maru Gothic ProN",sans-serif;
+  --body:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1a2b; --surface:#172640; --ink:#e4ecf7; --muted:#9fb2cc;
+  --accent:#7fb0ff; --accent-ink:#0f1a2b; --good:#6fd39a; --warn:#f0a860; --line:#2c4166; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1a2b; --surface:#172640; --ink:#e4ecf7; --muted:#9fb2cc;
+  --accent:#7fb0ff; --accent-ink:#0f1a2b; --good:#6fd39a; --warn:#f0a860; --line:#2c4166; color-scheme:dark}
+html,body{height:100%}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px;box-sizing:border-box}
+.app{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:24px;max-width:1280px;margin:0 auto;min-height:100%;align-items:center}
+@media (max-width:760px){.app{grid-template-columns:1fr;gap:12px}}
+.stage{background:#6c9bd2;border-radius:20px;overflow:hidden;aspect-ratio:400/470;max-width:100%;max-height:88vh;justify-self:center;width:100%}
+@media (max-width:760px){.stage{max-height:42vh;width:auto}}
+.stage svg{display:block;width:100%;height:100%}
+.panel{display:flex;flex-direction:column;gap:16px;min-width:0}
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:clamp(14px,1.6vw,20px)}
+.top b{color:var(--ink);font-variant-numeric:tabular-nums}
+.name{font-family:var(--display);color:var(--accent);font-size:clamp(16px,1.8vw,22px)}
+.bubble{position:relative;background:var(--surface);border:3px solid var(--ink);border-radius:24px;padding:clamp(16px,2.4vw,32px);
+  font-size:clamp(22px,3.1vw,44px);line-height:1.5;font-weight:700;text-wrap:balance;min-height:4.5em}
+.bubble::before{content:"";position:absolute;left:-18px;top:44px;border:14px solid transparent;border-right:18px solid var(--ink);border-left:0}
+@media (max-width:760px){.bubble::before{display:none}}
+.status{display:flex;align-items:center;gap:12px;font-size:clamp(16px,2vw,26px);min-height:1.6em}
+.dot{width:16px;height:16px;border-radius:50%;background:var(--line);flex:none}
+.listening .dot{background:#e0473f;animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.5);opacity:.5}}
+.heard{color:var(--muted)} .heard strong{color:var(--ink)}
+.result{font-size:clamp(20px,2.6vw,34px);font-weight:700;min-height:1.4em}
+.result.good{color:var(--good)} .result.bad{color:var(--warn)}
+.hint{border-left:6px solid var(--warn);padding:8px 14px;font-size:clamp(18px,2.2vw,28px);background:var(--surface);border-radius:0 12px 12px 0}
+.answer{display:flex;gap:10px;flex-wrap:wrap}
+.answer input{flex:1 1 220px;min-width:0;font-family:var(--body);font-size:clamp(20px,2.6vw,32px);padding:.45em .7em;border:2px solid var(--ink);border-radius:14px;background:var(--surface);color:var(--ink)}
+.answer input:focus-visible{outline:4px solid var(--accent);outline-offset:2px}
+.controls{display:flex;flex-wrap:wrap;gap:12px}
+button{font-family:var(--body);font-weight:700;font-size:clamp(16px,1.9vw,24px);border-radius:14px;border:2px solid var(--ink);
+  background:var(--surface);color:var(--ink);padding:.6em 1.1em;cursor:pointer}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-size:clamp(20px,2.4vw,30px);padding:.6em 1.6em}
+button:disabled{opacity:.4;cursor:default}
+button:focus-visible{outline:4px solid var(--accent);outline-offset:3px}
+.teacher{display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--muted);font-size:15px;border-top:1px dashed var(--line);padding-top:12px}
+.teacher button{font-size:15px;padding:.4em .8em;border-width:1px}
+.teacher label{display:flex;gap:6px;align-items:center}
+.notice{background:var(--surface);border:1px solid var(--warn);color:var(--warn);border-radius:12px;padding:10px 14px;font-size:15px}
+
+/* キャラクターの動き */
+#chara .eyes{transform-box:fill-box;transform-origin:center;animation:blink 4.2s infinite}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+#chara .mouth-open{transform-box:fill-box;transform-origin:center top;opacity:0}
+#chara.talking .mouth-open{opacity:1;animation:talk .22s infinite alternate}
+#chara.talking .mouth-closed{opacity:0}
+@keyframes talk{from{transform:scaleY(.25)}to{transform:scaleY(1)}}
+#chara .happy-eyes,#chara .smile,#chara .q-mark{opacity:0}
+#chara.happy .happy-eyes,#chara.happy .smile{opacity:1}
+#chara.happy .eyes,#chara.happy .mouth-closed{opacity:0}
+#chara.think .q-mark{opacity:1}
+#chara.think .brows{transform:translateY(-4px)}
+#chara .body{transition:transform .3s}
+#chara.happy .body{animation:hop .5s 2}
+@keyframes hop{50%{transform:translateY(-10px)}}
+#chara .steam path{animation:steam 3.5s ease-in-out infinite}
+#chara .steam path:nth-child(2){animation-delay:1.2s}
+@keyframes steam{0%{opacity:0;transform:translateY(10px)}40%{opacity:.9}100%{opacity:0;transform:translateY(-30px)}}
+@media (prefers-reduced-motion:reduce){#chara *{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="stage">
+    <svg id="chara" viewBox="0 0 400 470" role="img" aria-label="出題するキャラクター、ミドリ">
+      <!-- 窓と空 -->
+      <rect x="0" y="0" width="400" height="470" fill="#6c9bd2"/>
+      <rect x="40" y="36" width="320" height="230" rx="6" fill="#cfe2f5" stroke="#1f4479" stroke-width="8"/>
+      <path d="M200 36V266M40 150H360" stroke="#1f4479" stroke-width="6"/>
+      <path d="M62 118q8-22 30-14q10-18 30-6q18-4 20 14q14 4 8 18H58q-8-6 4-12z" fill="#fff" stroke="#1f4479" stroke-width="2"/>
+      <path d="M262 92q10-16 28-8q14-12 28 2q16 2 14 16H258q-6-6 4-10z" fill="#fff" stroke="#1f4479" stroke-width="2"/>
+      <path d="M44 250q60-40 120-22q50-30 100-6q50-20 92 8V262H44z" fill="#4a77b0"/>
+      <!-- 鉢植え（単元：植物） -->
+      <g>
+        <path d="M30 470l10-70h70l10 70z" fill="#3c6aa6" stroke="#1b3560" stroke-width="3"/>
+        <rect x="34" y="392" width="82" height="14" rx="3" fill="#4f7fbd" stroke="#1b3560" stroke-width="3"/>
+        <path d="M75 392C70 360 74 330 78 300" stroke="#1b3560" stroke-width="4" fill="none"/>
+        <path d="M76 340c-30-6-40-26-38-40c22 0 36 18 38 40z" fill="#9cc3ea" stroke="#1b3560" stroke-width="3"/>
+        <path d="M77 320c28-10 34-30 30-44c-20 4-30 22-30 44z" fill="#9cc3ea" stroke="#1b3560" stroke-width="3"/>
+        <path d="M78 302c-12-14-10-30-2-38c10 8 10 24 2 38z" fill="#b9d6f2" stroke="#1b3560" stroke-width="3"/>
+      </g>
+      <g class="body">
+        <!-- 後ろ髪とポニーテール -->
+        <ellipse cx="200" cy="182" rx="70" ry="80" fill="#24508f"/>
+        <path d="M252 150c46 14 52 80 40 130c-6 26-18 44-26 52c2-30 0-62-6-92c-6-34-12-62-8-90z" fill="#24508f" stroke="#1b3560" stroke-width="3"/>
+        <!-- 首と服 -->
+        <rect x="186" y="262" width="28" height="40" fill="#c4d9ef"/>
+        <path d="M96 470c4-100 30-150 74-166l30-8l30 8c44 16 70 66 74 166z" fill="#8db0db" stroke="#1b3560" stroke-width="3"/>
+        <path d="M168 300l32 34l-12 22l-30-40zM232 300l-32 34l12 22l30-40z" fill="#a9c6e8" stroke="#1b3560" stroke-width="3"/>
+        <path d="M200 334V470" stroke="#1b3560" stroke-width="2" opacity=".5"/>
+        <!-- 顔 -->
+        <path d="M144 176c-2 62 10 96 34 110c14 8 30 8 44 0c24-14 36-48 34-110z" fill="#d6e6f6" stroke="#1b3560" stroke-width="3"/>
+        <!-- 前髪 -->
+        <path d="M132 196c-4-70 30-98 68-98s74 26 70 98c-6-22-16-38-28-46l-6 34c-6-20-18-36-34-44l-4 36c-8-18-18-30-32-34l-10 36c-4-14-12-22-24-26z" fill="#24508f" stroke="#1b3560" stroke-width="3"/>
+        <path d="M146 196c-4 40 0 70 8 92M254 196c4 40 0 70-8 92" stroke="#24508f" stroke-width="10" stroke-linecap="round" fill="none"/>
+        <!-- まゆ -->
+        <g class="brows" stroke="#1b3560" stroke-width="3.5" stroke-linecap="round" fill="none">
+          <path d="M164 192q14-6 26 0"/><path d="M210 192q12-6 26 0"/>
+        </g>
+        <!-- 目 -->
+        <g class="eyes">
+          <ellipse cx="178" cy="218" rx="12" ry="10" fill="#fff"/>
+          <ellipse cx="222" cy="218" rx="12" ry="10" fill="#fff"/>
+          <ellipse cx="179" cy="219" rx="7.5" ry="9" fill="#1b3560"/>
+          <ellipse cx="221" cy="219" rx="7.5" ry="9" fill="#1b3560"/>
+          <circle cx="182" cy="215" r="2.6" fill="#fff"/><circle cx="224" cy="215" r="2.6" fill="#fff"/>
+          <path d="M164 212q14-12 28-2M208 210q14-10 28 2" stroke="#1b3560" stroke-width="4" stroke-linecap="round" fill="none"/>
+        </g>
+        <g class="happy-eyes" stroke="#1b3560" stroke-width="4" stroke-linecap="round" fill="none">
+          <path d="M166 222q12-14 24 0"/><path d="M210 222q12-14 24 0"/>
+        </g>
+        <path d="M200 236l-3 12h5" stroke="#1b3560" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <ellipse cx="166" cy="246" rx="9" ry="4" fill="#9fbfe3" opacity=".7"/>
+        <ellipse cx="234" cy="246" rx="9" ry="4" fill="#9fbfe3" opacity=".7"/>
+        <!-- 口 -->
+        <path class="mouth-closed" d="M192 262q8 3 16 0" stroke="#1b3560" stroke-width="3" stroke-linecap="round" fill="none"/>
+        <ellipse class="mouth-open" cx="200" cy="264" rx="8" ry="7" fill="#1b3560"/>
+        <path class="smile" d="M186 258q14 16 28 0z" fill="#1b3560"/>
+        <!-- はてなマーク（ヒントのとき） -->
+        <text class="q-mark" x="282" y="150" font-size="48" font-weight="700" fill="#fff" stroke="#1b3560" stroke-width="2" font-family="sans-serif">?</text>
+        <!-- マグカップと湯気 -->
+        <g class="steam" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round">
+          <path d="M240 356c-10-12 10-20 0-34"/><path d="M262 356c-10-12 10-20 0-34"/>
+        </g>
+        <rect x="222" y="364" width="62" height="74" rx="8" fill="#e6eff9" stroke="#1b3560" stroke-width="3"/>
+        <path d="M284 384c20 0 20 34 0 34" stroke="#1b3560" stroke-width="5" fill="none"/>
+        <path d="M238 396c8-10 22-10 30 0c-8 4-22 4-30 0z" fill="#7fae8f" stroke="#1b3560" stroke-width="2"/>
+        <path d="M253 396v14" stroke="#1b3560" stroke-width="2"/>
+        <path d="M206 392c-10 6-10 30 0 38c10 4 22 2 22-6v-28c0-6-12-8-22-4z" fill="#d6e6f6" stroke="#1b3560" stroke-width="3"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="panel">
+    <div class="top">
+      <span class="name">ミドリ</span>
+      <span>第 <b id="qno">1</b> 問 / <b id="qtotal">10</b>　正解 <b id="score">0</b></span>
+    </div>
+    <div class="bubble" id="bubble" aria-live="polite">こんにちは、ミドリです。今日は植物の用語を確認するよ。準備ができたら「スタート」を押してね。</div>
+    <div class="status" id="status"><span class="dot"></span><span class="heard" id="heard">マイクは待機中</span></div>
+    <form class="answer" id="answerForm" hidden>
+      <input id="answerInput" type="text" autocomplete="off" autocapitalize="off" enterkeyhint="done" placeholder="ここをタップ → キーボードのマイクで話す">
+      <button type="submit" class="primary">判定</button>
+    </form>
+    <div class="result" id="result" aria-live="polite"></div>
+    <div class="hint" id="hint" hidden></div>
+    <div class="controls">
+      <button class="primary" id="startBtn">スタート</button>
+      <button class="primary" id="answerBtn" hidden>こたえる</button>
+      <button id="repeatBtn" hidden>もう一度きく</button>
+      <button id="revealBtn" hidden>答えを見る</button>
+      <button class="primary" id="nextBtn" hidden>次の問題</button>
+    </div>
+    <div class="notice" id="notice" hidden></div>
+    <div class="teacher">
+      <span>先生用：</span>
+      <button id="okBtn">○ 正解にする</button>
+      <button id="ngBtn">× まちがいにする</button>
+      <label id="autoLabel"><input type="checkbox" id="autoListen"> 問題を読んだら自動で聞きとる</label>
+    </div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {q:"植物が光を受けて、水と二酸化炭素からデンプンなどの栄養分をつくるはたらきを何という？",
+   a:"光合成", accept:["光合成","こうごうせい","光ごう成"],
+   hints:["「光」を使って何かを「合わせて成り立たせる」はたらきだよ。","「こう◯◯せい」、5文字だよ。"],
+   note:"光合成は、葉緑体で行われるよ。"},
+  {q:"葉の細胞の中にある、緑色の小さな粒を何という？",
+   a:"葉緑体", accept:["葉緑体","ようりょくたい","葉緑帯","用緑体"],
+   hints:["光合成が行われる場所だよ。","「葉」の「緑」の「体」と書くよ。"],
+   note:"葉緑体で光合成が行われるんだね。"},
+  {q:"葉の表皮にある、2つの孔辺細胞に囲まれたすきまを何という？",
+   a:"気孔", accept:["気孔","きこう","気候","機構","寄港","紀行","気口"],
+   hints:["酸素や二酸化炭素、水蒸気が出入りする「あな」だよ。","「き◯◯」、3文字だよ。"],
+   note:"気孔は、ふつう葉の裏側に多くあるよ。"},
+  {q:"植物のからだから、水が水蒸気となって出ていく現象を何という？",
+   a:"蒸散", accept:["蒸散","じょうさん","上散","蒸算"],
+   hints:["主に気孔から水蒸気が出ていくよ。","「じょう◯◯」、蒸気の「蒸」が入るよ。"],
+   note:"蒸散がさかんになると、根から水を吸い上げる力も強くなるよ。"},
+  {q:"根から吸収した水や、水にとけた養分が通る管を何という？",
+   a:"道管", accept:["道管","どうかん","導管","同感","動感"],
+   hints:["水の「通り道」になる管だよ。","「ど◯◯ん」、「道」という字が入るよ。"],
+   note:"道管は、茎では維管束の内側にあるよ。"},
+  {q:"葉でつくられた栄養分が、からだ全体に運ばれるときに通る管を何という？",
+   a:"師管", accept:["師管","しかん","士官","歯冠","試管","師館","子管","支管"],
+   hints:["道管とは別の管だよ。","「し◯◯」、先生の「師」という字が入るよ。"],
+   note:"道管は水、師管は栄養分。セットで覚えよう。"},
+  {q:"道管と師管が集まって、束のようになっている部分を何という？",
+   a:"維管束", accept:["維管束","いかんそく","維管則","遺憾束"],
+   hints:["「管」が集まった「束」だよ。","「い◯◯そく」、5文字だよ。"],
+   note:"双子葉類は維管束が輪の形に、単子葉類はばらばらに並んでいるよ。"},
+  {q:"めしべの先の部分で、花粉がつくところを何という？",
+   a:"柱頭", accept:["柱頭","ちゅうとう","中頭","中東","中等"],
+   hints:["めしべを「柱」と考えると、その「頭」の部分だよ。","「ちゅう◯◯」だよ。"],
+   note:"花粉が柱頭につくことを受粉というよ。"},
+  {q:"めしべのもとのふくらんだ部分で、受粉したあと成長して果実になる部分を何という？",
+   a:"子房", accept:["子房","しぼう","脂肪","志望","死亡","子坊"],
+   hints:["中に胚珠が入っている部屋のような部分だよ。","「し◯◯」、3文字だよ。"],
+   note:"子房は果実に、中の胚珠は種子になるよ。"},
+  {q:"子房の中にあって、成長すると種子になる粒を何という？",
+   a:"胚珠", accept:["胚珠","はいしゅ","敗守","肺珠","胚種"],
+   hints:["子房に包まれている小さな粒だよ。","「はい◯◯」、3文字だよ。"],
+   note:"胚珠が子房に包まれている植物を被子植物というよ。"}
+];
+
+const PRAISE = ["正解！すごいね。","正解！よく覚えているね。","その通り！","ばっちり正解！"];
+const $ = id => document.getElementById(id);
+const chara = $("chara");
+let order = [], idx = 0, score = 0, tries = 0, done = false, rec = null, listening = false, misses = 0;
+
+/* ---------- 文字のそろえ（カタカナ→ひらがな、空白や記号を除く） ---------- */
+function norm(s){
+  return (s||"").replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60))
+    .replace(/[\s、。．，,.！!？?「」ー〜~]/g,"").toLowerCase();
+}
+
+/* ---------- 読み上げ ---------- */
+let jaVoice = null;
+function pickVoice(){
+  const vs = speechSynthesis.getVoices().filter(v=>/^ja/i.test(v.lang));
+  jaVoice = vs.find(v=>/google|kyoko|nanami|haruka/i.test(v.name)) || vs[0] || null;
+}
+if ("speechSynthesis" in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+
+function say(text, show=true){
+  if (show) $("bubble").textContent = text;
+  return new Promise(resolve=>{
+    if (!("speechSynthesis" in window)){ resolve(); return; }
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "ja-JP"; u.rate = 0.95; u.pitch = 1.15;
+    if (jaVoice) u.voice = jaVoice;
+    let finished = false;
+    const end = ()=>{ if(finished) return; finished = true; chara.classList.remove("talking"); resolve(); };
+    u.onstart = ()=>chara.classList.add("talking");
+    u.onend = end; u.onerror = end;
+    // 一部のタブレットで終了通知が来ないことへの保険
+    setTimeout(end, 1500 + text.length * 220);
+    chara.classList.add("talking");
+    speechSynthesis.speak(u);
+  });
+}
+
+function mood(m){ chara.classList.remove("happy","think"); if(m) chara.classList.add(m); }
+
+/* ---------- 音声認識 ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+function showNotice(t){ $("notice").textContent = t; $("notice").hidden = false; }
+let canSR = false;
+try { canSR = !!SR && window.top === window; } catch(e){ canSR = false; }
+if (!canSR) $("autoLabel").hidden = true;
+
+function setListening(on){
+  listening = on;
+  $("status").classList.toggle("listening", on);
+  $("answerBtn").textContent = on ? "聞いています…" : "こたえる";
+  $("answerBtn").disabled = on;
+}
+
+function listen(fromTap){
+  if (!canSR || listening || done) return;
+  speechSynthesis.cancel();
+  rec = new SR();
+  rec.lang = "ja-JP"; rec.interimResults = true; rec.maxAlternatives = 5; rec.continuous = false;
+  let gotFinal = false, errored = false;
+  $("heard").textContent = "話してください…";
+  rec.onresult = e=>{
+    const r = e.results[e.results.length-1];
+    $("heard").innerHTML = "";
+    const lab = document.createTextNode("聞こえた答え：");
+    const st = document.createElement("strong"); st.textContent = r[0].transcript;
+    $("heard").append(lab, st);
+    if (r.isFinal){
+      gotFinal = true;
+      const alts = Array.from(r).map(x=>x.transcript);
+      judge(alts);
+    }
+  };
+  rec.onerror = e=>{
+    setListening(false);
+    if (e.error !== "no-speech") errored = true;
+    const blocked = e.error === "not-allowed" || e.error === "service-not-allowed";
+    if (blocked && !fromTap){
+      $("answerBtn").hidden = false;
+      $("heard").textContent = "「こたえる」を押してから話してね";
+      return;
+    }
+    if (e.error !== "no-speech" && e.error !== "aborted") showNotice("聞きとりエラー（" + e.error + "）");
+    if (blocked){
+      $("heard").textContent = "マイクが使えませんでした。先生用ボタンで進めてください";
+    } else if (e.error === "network"){
+      showNotice("聞きとりにはインターネット接続が必要です。");
+    }
+  };
+  rec.onend = ()=>{
+    setListening(false);
+    if (!gotFinal && !done && !errored){
+      misses++;
+      $("heard").textContent = "聞きとれませんでした。「こたえる」でもう一度";
+      say("ごめんね、よく聞こえなかったよ。もう一度言ってみて。", false)
+        .then(()=>{ if ($("autoListen").checked && !done && misses <= 1) listen(); });
+    }
+  };
+  setListening(true);
+  try { rec.start(); } catch(err){ setListening(false); }
+}
+
+/* ---------- 判定 ---------- */
+function judge(alts){
+  if (done) return;
+  const q = order[idx];
+  isRight(alts) ? correct() : wrong();
+}
+
+function isRight(alts){
+  const keys = order[idx].accept.map(norm);
+  return alts.some(a=>{ const n = norm(a); return n && keys.some(k=>n.includes(k)); });
+}
+
+let typeTimer = null;
+function submitTyped(){
+  clearTimeout(typeTimer);
+  const inp = $("answerInput"); const v = inp.value.trim();
+  if (!v || done) return;
+  inp.value = ""; inp.blur();
+  judge([v]);
+}
+
+function correct(){
+  if (done) return;
+  done = true; score++; $("score").textContent = score;
+  const q = order[idx];
+  mood("happy");
+  $("result").className = "result good";
+  $("result").textContent = "正解！ 答え：" + q.a;
+  $("hint").hidden = false; $("hint").textContent = q.note;
+  showAfter();
+  say(PRAISE[Math.floor(Math.random()*PRAISE.length)] + "答えは、" + q.a + "。" + q.note, false);
+}
+
+function wrong(){
+  if (done) return;
+  const q = order[idx];
+  tries++;
+  $("result").className = "result bad";
+  if (tries <= q.hints.length){
+    mood("think");
+    $("result").textContent = "おしい！ もう一度考えてみよう";
+    $("hint").hidden = false; $("hint").textContent = "ヒント" + tries + "：" + q.hints[tries-1];
+    say((tries===1 ? "うーん、ちがうみたい。ヒントだよ。" : "もうひとつヒント。") + q.hints[tries-1], false)
+      .then(()=>{ if ($("autoListen").checked && !done) listen(); });
+  } else {
+    reveal();
+  }
+}
+
+function reveal(){
+  if (done) return;
+  done = true;
+  const q = order[idx];
+  mood(null);
+  $("result").className = "result bad";
+  $("result").textContent = "答え：" + q.a;
+  $("hint").hidden = false; $("hint").textContent = q.note;
+  showAfter();
+  say("正解は、" + q.a + "でした。" + q.note + "次はがんばろう。", false);
+}
+
+function showAfter(){
+  if (rec) try{ rec.abort(); }catch(e){}
+  setListening(false);
+  $("answerBtn").hidden = true; $("revealBtn").hidden = true; $("answerForm").hidden = true;
+  $("nextBtn").hidden = false;
+  $("nextBtn").textContent = idx === order.length-1 ? "結果を見る" : "次の問題";
+}
+
+/* ---------- 進行 ---------- */
+function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+function ask(){
+  const q = order[idx];
+  done = false; tries = 0; misses = 0; mood(null);
+  $("notice").hidden = true;
+  $("qno").textContent = idx+1;
+  $("result").textContent = ""; $("hint").hidden = true;
+  $("heard").textContent = canSR ? "マイクは待機中" : "答えのらんをタップ → キーボードのマイクで話してね";
+  $("answerBtn").hidden = !canSR; $("repeatBtn").hidden = false; $("revealBtn").hidden = false;
+  $("answerForm").hidden = false; $("answerInput").value = "";
+  $("nextBtn").hidden = true;
+  say(q.q).then(()=>{ if ($("autoListen").checked && !done) listen(); });
+}
+
+function start(){
+  order = shuffle(QUESTIONS); idx = 0; score = 0;
+  $("score").textContent = 0; $("qtotal").textContent = order.length;
+  $("startBtn").hidden = true;
+  say("それじゃあ始めるよ。答えがわかったら、声で答えてね。", true).then(ask);
+}
+
+function next(){
+  if (idx < order.length-1){ idx++; ask(); }
+  else finish();
+}
+
+function finish(){
+  done = true;
+  mood(score >= order.length*0.7 ? "happy" : null);
+  $("answerBtn").hidden = true; $("repeatBtn").hidden = true; $("revealBtn").hidden = true; $("nextBtn").hidden = true; $("answerForm").hidden = true;
+  $("result").className = "result good";
+  $("result").textContent = order.length + "問中 " + score + "問 正解";
+  $("hint").hidden = true;
+  $("startBtn").hidden = false; $("startBtn").textContent = "もう一度";
+  const msg = score === order.length ? "全問正解！植物の用語はばっちりだね。"
+    : score >= order.length*0.7 ? "よくできました！まちがえた用語をもう一度見直そう。"
+    : "おつかれさま。まちがえた用語は、教科書で確認しておこうね。";
+  say(order.length + "問中、" + score + "問正解。" + msg);
+}
+
+$("startBtn").onclick = start;
+$("answerBtn").onclick = ()=>listen(true);
+$("answerForm").addEventListener("submit", e=>{ e.preventDefault(); submitTyped(); });
+$("answerInput").addEventListener("input", e=>{
+  clearTimeout(typeTimer);
+  if (e.isComposing || done || !order.length) return;
+  const v = $("answerInput").value.trim();
+  if (!v) return;
+  const st = document.createElement("strong"); st.textContent = v;
+  $("heard").replaceChildren(document.createTextNode("聞こえた答え："), st);
+  typeTimer = setTimeout(submitTyped, isRight([v]) ? 700 : 2500);
+});
+$("answerInput").addEventListener("focus", ()=>{ if ("speechSynthesis" in window) speechSynthesis.cancel(); });
+$("repeatBtn").onclick = ()=>{ if(!done) say(order[idx].q); };
+$("revealBtn").onclick = reveal;
+$("nextBtn").onclick = next;
+$("okBtn").onclick = ()=>{ if(order.length) correct(); };
+$("ngBtn").onclick = ()=>{ if(order.length) wrong(); };
+document.addEventListener("keydown", e=>{
+  if (e.target.tagName === "INPUT") return;
+  if (e.code === "Space" && !$("answerBtn").hidden){ e.preventDefault(); listen(true); }
+  if (e.key === "Enter" && !$("nextBtn").hidden){ e.preventDefault(); next(); }
+});
+</script>
+</body>
+</html>
+
+</body></html>
