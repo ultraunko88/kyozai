@@ -98,6 +98,34 @@ button small{display:block;font-size:max(13px,.55em);font-weight:500;margin-top:
 @media (max-width:760px){.grid{gap:5px}.grid button{padding:.4em .2em}}
 .result ruby.ans rt{font-size:.45em;font-weight:500;letter-spacing:.05em}
 .result{line-height:1.6}
+/* スマホ（縦）で出題中：ミドリを小さくして吹き出しの横に並べ、主要ボタンは画面下に固定して必ず見えるようにする */
+@media (max-width:760px){
+  .app:has(#quiz:not([hidden])){grid-template-columns:minmax(0,37%) minmax(0,1fr);gap:8px 10px;align-items:start;align-content:start;min-height:0}
+  .app:has(#quiz:not([hidden])) .panel{display:contents}
+  .app:has(#quiz:not([hidden])) .stage{grid-column:1;grid-row:1 / span 2;max-height:none;width:100%;align-self:start;border-radius:14px}
+  .app:has(#quiz:not([hidden])) .top{grid-column:2;grid-row:1;font-size:13px;gap:0 8px;line-height:1.35}
+  .app:has(#quiz:not([hidden])) .name{font-size:15px}
+  .app:has(#quiz:not([hidden])) .bubble{grid-column:2;grid-row:2;align-self:start;font-size:clamp(16px,4.6vw,20px);line-height:1.45;padding:10px 12px;min-height:0;border-width:2px;border-radius:16px}
+  .app:has(#quiz:not([hidden])) .quiz,
+  .app:has(#quiz:not([hidden])) .notice,
+  .app:has(#quiz:not([hidden])) .teacher{grid-column:1 / -1}
+  .quiz{gap:8px}
+  .status{font-size:15px;gap:8px;min-height:1.4em}
+  .dot{width:12px;height:12px}
+  .answer{flex-wrap:nowrap;gap:8px}
+  .answer input{flex:1 1 0;font-size:17px;padding:.4em .6em;border-radius:12px}
+  .answer button.primary{font-size:17px;padding:.4em .9em;flex:none}
+  .result{font-size:19px;min-height:0;line-height:1.45}
+  .hint{font-size:15px;padding:6px 10px;border-left-width:5px}
+  .controls{position:sticky;bottom:0;z-index:2;background:var(--bg);gap:8px;
+    padding:8px 0 max(8px,env(safe-area-inset-bottom,0px));margin-top:-4px}
+  .controls button{flex:1 1 auto;font-size:16px;padding:.65em .5em;border-radius:12px}
+  .controls button.primary{font-size:17px;padding:.65em .6em}
+}
+/* 横向きのスマホなど高さが低い画面でも、主要ボタンは画面下に固定 */
+@media (max-height:520px){
+  .controls{position:sticky;bottom:0;z-index:2;background:var(--bg);padding:8px 0}
+}
 </style>
 </head>
 <body>
