@@ -1880,6 +1880,8 @@ document.addEventListener("keydown", e=>{
 buildGrid();
 refreshSetup();
 
+/* iPhoneのChromeなどは下のバーがページに重ならないので、Safari用の余白をなくす */
+if (/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent)) document.documentElement.style.setProperty("--barPad","0px");
 /* スマホ縦で出題中：ボタンがちょうど1画面目の下に来るよう、出題エリアの高さを画面に合わせる */
 (function(){
   const quiz = $("quiz");
