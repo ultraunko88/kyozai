@@ -123,7 +123,9 @@ button small{display:block;font-size:max(13px,.55em);font-weight:500;margin-top:
   .status{font-size:15px;gap:8px;min-height:1.4em}
   .dot{width:12px;height:12px}
   .answer{flex-wrap:nowrap;gap:8px}
-  .answer input{flex:1 1 0;font-size:17px;padding:.4em .6em;border-radius:12px}
+  html{overflow-x:clip}
+  .quiz,.answer,.controls{min-width:0}
+  .answer input{flex:1 1 0;width:0;font-size:17px;padding:.4em .6em;border-radius:12px;text-overflow:ellipsis}
   .answer button.primary{font-size:17px;padding:.4em .9em;flex:none}
   .result{font-size:19px;min-height:0;line-height:1.45}
   .hint{font-size:15px;padding:6px 10px;border-left-width:5px}
@@ -133,7 +135,7 @@ button small{display:block;font-size:max(13px,.55em);font-weight:500;margin-top:
   .controls button.primary{font-size:17px;padding:.7em .6em}
   .teacher{margin-top:4px}
   /* 出題中は縦に積む：ミドリを上に大きめに、吹き出しは横いっぱい。画面の高さに合わせてミドリの大きさを変える */
-  .app:has(#quiz:not([hidden])){--SH:clamp(120px,calc(100dvh - 470px),46dvh);grid-template-columns:1fr;gap:8px}
+  .app:has(#quiz:not([hidden])){--SH:clamp(120px,calc(100dvh - 470px),46dvh);grid-template-columns:minmax(0,1fr);gap:8px}
   .app:has(#quiz:not([hidden])) .stage{grid-column:1;grid-row:auto;height:var(--SH);width:auto;justify-self:center;border-radius:18px}
   .app:has(#quiz:not([hidden])) .top{grid-column:1;grid-row:auto;font-size:14px}
   .app:has(#quiz:not([hidden])) .name{font-size:16px}
