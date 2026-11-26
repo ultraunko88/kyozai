@@ -290,6 +290,9 @@ button small{display:block;font-size:max(13px,.55em);font-weight:500;margin-top:
       <button id="okBtn">○ 正解にする</button>
       <button id="ngBtn">× まちがいにする</button>
       <label id="autoLabel"><input type="checkbox" id="autoListen"> 問題を読んだら自動で聞きとる</label>
+      <label id="voiceLabel" hidden>モミジの声
+        <select id="voiceSel"></select>
+      </label>
       <label>1回の問題数
         <select id="countSel">
           <option value="5">5問</option>
@@ -1512,12 +1515,31 @@ function norm(s){
 }
 
 /* ---------- 読み上げ ---------- */
-let jaVoice = null;
+/* モミジは男の子なので、端末に男性の日本語の声があればそれを使う。
+   ないときは女性の声を低めにして、男の子らしく聞こえるようにする。先生用の欄で声を選びなおせる */
+let jaVoice = null, voiceIsMale = false;
+const MALE_VOICE = /otoya|hattori|ichiro|keita|daichi|naoki|takumi|male|男/i;
+function voiceList(){ return "speechSynthesis" in window ? speechSynthesis.getVoices().filter(v=>/^ja/i.test(v.lang)) : []; }
 function pickVoice(){
-  const vs = speechSynthesis.getVoices().filter(v=>/^ja/i.test(v.lang));
-  jaVoice = vs.find(v=>/google|kyoko|nanami|haruka/i.test(v.name)) || vs[0] || null;
+  const vs = voiceList();
+  const saved = store.get("voice", "");
+  jaVoice = (saved && vs.find(v=>v.name === saved)) || vs.find(v=>MALE_VOICE.test(v.name))
+    || vs.find(v=>/google|kyoko|nanami|haruka/i.test(v.name)) || vs[0] || null;
+  voiceIsMale = !!jaVoice && MALE_VOICE.test(jaVoice.name);
+  fillVoiceSel();
 }
-if ("speechSynthesis" in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+function fillVoiceSel(){
+  const sel = document.getElementById("voiceSel"); if (!sel) return;
+  const vs = voiceList();
+  sel.replaceChildren();
+  for (const v of vs){
+    const o = document.createElement("option"); o.value = v.name;
+    o.textContent = v.name.replace(/^Microsoft |^Google /,"").replace(/ \(.*\)$/,"") + (MALE_VOICE.test(v.name) ? "（男性）" : "");
+    sel.append(o);
+  }
+  if (jaVoice) sel.value = jaVoice.name;
+  document.getElementById("voiceLabel").hidden = vs.length < 2;
+}
 
 const READING_KEYS = Object.keys(READINGS).sort((a,b)=>b.length-a.length);
 function toReading(text){
@@ -1532,7 +1554,7 @@ function say(text, show=true){
     if (!("speechSynthesis" in window)){ resolve(); return; }
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(toReading(text));
-    u.lang = "ja-JP"; u.rate = 0.95; u.pitch = 1.0;
+    u.lang = "ja-JP"; u.rate = 0.95; u.pitch = voiceIsMale ? 1.05 : 0.8;
     if (jaVoice) u.voice = jaVoice;
     let finished = false;
     const end = ()=>{ if(finished) return; finished = true; chara.classList.remove("talking"); resolve(); };
@@ -1871,6 +1893,8 @@ $("nextBtn").onclick = next;
 $("okBtn").onclick = ()=>{ if(order.length && !done) correct(); };
 $("ngBtn").onclick = ()=>{ if(order.length && !done) wrong(); };
 
+if ("speechSynthesis" in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+$("voiceSel").onchange = ()=>{ store.set("voice", $("voiceSel").value); pickVoice(); say("ぼくの声は、これでいいかな？", false); };
 $("autoListen").checked = !!store.get("auto", false);
 $("autoListen").onchange = ()=>store.set("auto", $("autoListen").checked);
 if (![...$("countSel").options].some(o=>o.value === String(qCount))){
