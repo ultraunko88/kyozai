@@ -1,0 +1,1928 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>モミジの社会クイズ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght@500&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+/* 横長スクリーン：左にキャラクター、右に吹き出しと操作。せまい画面では縦に積む */
+:root{
+  --bg:#f8ede4; --surface:#ffffff; --ink:#4a1f14; --muted:#86584a;
+  --accent:#c2451d; --accent-ink:#ffffff; --good:#23845a; --warn:#a86400; --line:#ebcdbd;
+  --display:"Kiwi Maru","Zen Maru Gothic","Hiragino Maru Gothic ProN",sans-serif;
+  --body:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#22140f; --surface:#33201a; --ink:#f7e7dd; --muted:#c9a596;
+  --accent:#ff9466; --accent-ink:#22140f; --good:#6fd39a; --warn:#f2c060; --line:#5a3a2e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#22140f; --surface:#33201a; --ink:#f7e7dd; --muted:#c9a596;
+  --accent:#ff9466; --accent-ink:#22140f; --good:#6fd39a; --warn:#f2c060; --line:#5a3a2e; color-scheme:dark}
+html,body{height:100%}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px;box-sizing:border-box}
+.app{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:24px;max-width:1280px;margin:0 auto;min-height:100%;align-items:center}
+@media (max-width:760px){.app{grid-template-columns:1fr;gap:12px}}
+.stage{background:#d9875a;border-radius:20px;overflow:hidden;aspect-ratio:400/470;max-width:100%;max-height:88vh;justify-self:center;width:100%}
+@media (max-width:760px){.stage{max-height:42vh;width:auto}}
+.stage svg{display:block;width:100%;height:100%}
+.panel{display:flex;flex-direction:column;gap:16px;min-width:0}
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:clamp(14px,1.6vw,20px)}
+.top b{color:var(--ink);font-variant-numeric:tabular-nums}
+.name{font-family:var(--display);color:var(--accent);font-size:clamp(16px,1.8vw,22px)}
+.bubble{position:relative;background:var(--surface);border:3px solid var(--ink);border-radius:24px;padding:clamp(16px,2.4vw,32px);
+  font-size:clamp(22px,3.1vw,44px);line-height:1.5;font-weight:700;text-wrap:balance;min-height:4.5em}
+.bubble::before{content:"";position:absolute;left:-18px;top:44px;border:14px solid transparent;border-right:18px solid var(--ink);border-left:0}
+@media (max-width:760px){.bubble::before{display:none}}
+.status{display:flex;align-items:center;gap:12px;font-size:clamp(16px,2vw,26px);min-height:1.6em}
+.dot{width:16px;height:16px;border-radius:50%;background:var(--line);flex:none}
+.listening .dot{background:#e0473f;animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.5);opacity:.5}}
+.heard{color:var(--muted)} .heard strong{color:var(--ink)}
+.result{font-size:clamp(20px,2.6vw,34px);font-weight:700;min-height:1.4em}
+.result.good{color:var(--good)} .result.bad{color:var(--warn)}
+.hint{border-left:6px solid var(--warn);padding:8px 14px;font-size:clamp(18px,2.2vw,28px);background:var(--surface);border-radius:0 12px 12px 0}
+.answer{display:flex;gap:10px;flex-wrap:wrap}
+.answer input{flex:1 1 220px;min-width:0;font-family:var(--body);font-size:clamp(20px,2.6vw,32px);padding:.45em .7em;border:2px solid var(--ink);border-radius:14px;background:var(--surface);color:var(--ink)}
+.answer input:focus-visible{outline:4px solid var(--accent);outline-offset:2px}
+.controls{display:flex;flex-wrap:wrap;gap:12px}
+button{font-family:var(--body);font-weight:700;font-size:clamp(16px,1.9vw,24px);border-radius:14px;border:2px solid var(--ink);
+  background:var(--surface);color:var(--ink);padding:.6em 1.1em;cursor:pointer}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-size:clamp(20px,2.4vw,30px);padding:.6em 1.6em}
+button:disabled{opacity:.4;cursor:default}
+button:focus-visible{outline:4px solid var(--accent);outline-offset:3px}
+.teacher{display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--muted);font-size:15px;border-top:1px dashed var(--line);padding-top:12px}
+.teacher button{font-size:15px;padding:.4em .8em;border-width:1px}
+.teacher label{display:flex;gap:6px;align-items:center}
+.notice{background:var(--surface);border:1px solid var(--warn);color:var(--warn);border-radius:12px;padding:10px 14px;font-size:15px}
+
+/* キャラクターの動き */
+#chara .eyes{transform-box:fill-box;transform-origin:center;animation:blink 4.2s infinite}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+#chara .mouth-open{transform-box:fill-box;transform-origin:center top;opacity:0}
+#chara.talking .mouth-open{opacity:1;animation:talk .22s infinite alternate}
+#chara.talking .mouth-closed{opacity:0}
+@keyframes talk{from{transform:scaleY(.25)}to{transform:scaleY(1)}}
+#chara .happy-eyes,#chara .smile,#chara .q-mark{opacity:0}
+#chara.happy .happy-eyes,#chara.happy .smile{opacity:1}
+#chara.happy .eyes,#chara.happy .mouth-closed{opacity:0}
+#chara.think .q-mark{opacity:1}
+#chara.think .brows{transform:translateY(-4px)}
+#chara .body{transition:transform .3s}
+#chara.happy .body{animation:hop .5s 2}
+@keyframes hop{50%{transform:translateY(-10px)}}
+#chara .leaves .fall{transform-box:fill-box;transform-origin:center;opacity:0;animation:fall 7s linear infinite}
+#chara .leaves g:nth-child(2) .fall{animation-delay:2.4s;animation-duration:8s}
+#chara .leaves g:nth-child(3) .fall{animation-delay:4.6s;animation-duration:7.5s}
+@keyframes fall{0%{opacity:0;transform:translate(0,0) rotate(0)}12%{opacity:1}50%{transform:translate(-18px,80px) rotate(160deg)}85%{opacity:1}100%{opacity:0;transform:translate(10px,170px) rotate(320deg)}}
+@media (prefers-reduced-motion:reduce){#chara *{animation:none!important}}
+/* 範囲えらび（分野×単元） */
+.unit{color:var(--muted);font-weight:700}
+.bubble.compact{font-size:clamp(18px,2.2vw,30px);min-height:0}
+.setup{display:flex;flex-direction:column;gap:14px}
+.grid{display:grid;grid-template-columns:auto repeat(4,minmax(0,1fr));gap:8px}
+.grid button{font-size:clamp(13px,1.45vw,19px);padding:.45em .35em;border-radius:12px;line-height:1.25;border-width:2px}
+.grid .hd{background:transparent;color:var(--muted);border:2px dashed var(--line)}
+.grid .hd.row{padding-inline:.7em}
+.grid .cap{grid-column:2 / -1;align-self:center;color:var(--muted);font-size:clamp(13px,1.4vw,17px);padding-left:4px}
+.grid .cell{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:3.7em;text-align:center;word-break:keep-all;overflow-wrap:anywhere}
+.grid .cell span{white-space:pre-line}
+.grid .cell small{font-weight:500;font-size:.78em;color:var(--muted)}
+.grid .cell[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.grid .cell[aria-pressed="true"] small{color:inherit;opacity:.85}
+.setup-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:stretch}
+button small{display:block;font-size:max(13px,.55em);font-weight:500;margin-top:2px}
+.quiz{display:flex;flex-direction:column;gap:16px}
+.teacher select{font-family:var(--body);font-size:15px;padding:.3em .4em;border-radius:8px;border:1px solid var(--ink);background:var(--surface);color:var(--ink)}
+@media (max-width:760px){.grid{gap:5px}.grid button{padding:.4em .2em}}
+.result ruby.ans rt{font-size:.45em;font-weight:500;letter-spacing:.05em}
+.result{line-height:1.6}
+/* スマホ（縦）：モミジを小さくして吹き出しの横に並べる。
+   出題中は主要ボタンを1画面目の下に置き（先生用はその下にスクロール）、はじめの画面は表とスタートを1画面に収める */
+@media (max-width:760px){
+  :root{--stageH:calc((100vw - 42px) * .37 * 1.175);--barPad:0px}
+  @supports (-webkit-touch-callout:none){:root{--barPad:64px}} /* iPhoneのSafariは下にアドレスバーが重なるので、その分あける */
+  body{padding-top:max(12px,env(safe-area-inset-top,0px));padding-bottom:12px}
+  .app{grid-template-columns:minmax(0,37%) minmax(0,1fr);gap:8px 10px;align-items:start;align-content:start;min-height:0}
+  .panel{display:contents}
+  .stage{grid-column:1;grid-row:1 / span 2;max-height:none;width:100%;align-self:start;border-radius:14px}
+  .top{grid-column:2;grid-row:1;font-size:13px;gap:0 8px;line-height:1.35}
+  .name{font-size:15px}
+  .bubble,.bubble.compact{grid-column:2;grid-row:2;align-self:start;font-size:clamp(15px,4.4vw,19px);line-height:1.45;padding:10px 12px;min-height:0;border-width:2px;border-radius:16px}
+  .setup,.quiz,.notice,.teacher{grid-column:1 / -1}
+  /* はじめの画面 */
+  .setup{gap:10px}
+  .grid .cell{min-height:3.3em}
+  .setup-actions{position:sticky;bottom:0;z-index:2;background:var(--bg);gap:8px;flex-wrap:nowrap;
+    padding:8px 0 calc(max(8px,env(safe-area-inset-bottom,0px)) + var(--barPad))}
+  .setup-actions button{flex:1 1 0;font-size:16px;padding:.55em .4em;line-height:1.3}
+  .setup-actions button.primary{flex-grow:1.4;font-size:18px}
+  /* 出題中：1画面目の高さいっぱいに広げ、ボタンを下にそろえる */
+  .quiz{gap:8px;min-height:calc(100dvh - var(--stageH) - 32px)}
+  .status{font-size:15px;gap:8px;min-height:1.4em}
+  .dot{width:12px;height:12px}
+  .answer{flex-wrap:nowrap;gap:8px}
+  html{overflow-x:clip}
+  .quiz,.answer,.controls{min-width:0}
+  .answer input{flex:1 1 0;width:0;font-size:17px;padding:.4em .6em;border-radius:12px;text-overflow:ellipsis}
+  .answer button.primary{font-size:17px;padding:.4em .9em;flex:none}
+  .result{font-size:19px;min-height:0;line-height:1.45}
+  .hint{font-size:15px;padding:6px 10px;border-left-width:5px}
+  .controls{margin-top:auto;position:sticky;bottom:0;z-index:2;background:var(--bg);gap:8px;
+    padding:8px 0 calc(max(8px,env(safe-area-inset-bottom,0px)) + var(--barPad))}
+  .controls button{flex:1 1 auto;font-size:16px;padding:.7em .5em;border-radius:12px}
+  .controls button.primary{font-size:17px;padding:.7em .6em}
+  .teacher{margin-top:4px}
+  /* 出題中は縦に積む：モミジを上に大きめに、吹き出しは横いっぱい。画面の高さに合わせてモミジの大きさを変える */
+  .app:has(#quiz:not([hidden])){--SH:clamp(120px,calc(100dvh - 470px),46dvh);grid-template-columns:minmax(0,1fr);gap:8px}
+  .app:has(#quiz:not([hidden])) .stage{grid-column:1;grid-row:auto;height:var(--SH);width:auto;justify-self:center;border-radius:18px}
+  .app:has(#quiz:not([hidden])) .top{grid-column:1;grid-row:auto;font-size:14px}
+  .app:has(#quiz:not([hidden])) .name{font-size:16px}
+  .app:has(#quiz:not([hidden])) .bubble{grid-column:1;grid-row:auto;font-size:clamp(18px,5.6vw,25px);padding:12px 16px}
+  .app:has(#quiz:not([hidden])) .quiz{min-height:calc(100dvh - var(--SH) - 200px)}
+}
+/* 横向きのスマホなど高さが低い画面でも、主要ボタンは画面下に固定 */
+@media (max-height:520px){
+  .controls{position:sticky;bottom:0;z-index:2;background:var(--bg);padding:8px 0}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="stage">
+    <svg id="chara" viewBox="0 0 400 470" role="img" aria-label="出題するキャラクター、モミジ">
+      <defs>
+        <path id="mleaf" d="M0-13L3-6L9-9L7-2L13 0L7 3L9 9L2 6L1 13H-1L-2 6L-9 9L-7 3L-13 0L-7-2L-9-9L-3-6Z"/>
+      </defs>
+      <!-- 窓と秋の空 -->
+      <rect x="0" y="0" width="400" height="470" fill="#d9875a"/>
+      <rect x="40" y="36" width="320" height="230" rx="6" fill="#fbe6cf" stroke="#6e2c1a" stroke-width="8"/>
+      <path d="M62 118q8-22 30-14q10-18 30-6q18-4 20 14q14 4 8 18H58q-8-6 4-12z" fill="#fff" stroke="#6e2c1a" stroke-width="2"/>
+      <path d="M44 250q60-40 120-22q50-30 100-6q50-20 92 8V262H44z" fill="#c8673c"/>
+      <path d="M44 262q70-24 140-10q60-18 172-2V262z" fill="#a9512d"/>
+      <!-- 窓の外のもみじの枝 -->
+      <path d="M356 46c-30 8-58 22-84 46M318 64c4 14 2 26-6 38" stroke="#6e2c1a" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <g stroke="#6e2c1a" stroke-width="1.6" stroke-linejoin="round">
+        <use href="#mleaf" transform="translate(272 96) rotate(-20) scale(1.3)" fill="#d9472a"/>
+        <use href="#mleaf" transform="translate(300 74) rotate(15) scale(1.1)" fill="#ec8a2f"/>
+        <use href="#mleaf" transform="translate(334 58) rotate(-8) scale(1.2)" fill="#d9472a"/>
+        <use href="#mleaf" transform="translate(312 106) rotate(30) scale(1.15)" fill="#e9632b"/>
+        <use href="#mleaf" transform="translate(342 84) rotate(-35) scale(1)" fill="#f0a63a"/>
+      </g>
+      <path d="M200 36V266M40 150H360" stroke="#6e2c1a" stroke-width="6"/>
+      <rect x="40" y="36" width="320" height="230" rx="6" fill="none" stroke="#6e2c1a" stroke-width="8"/>
+      <!-- ひらひら落ちるもみじ -->
+      <g class="leaves" stroke="#6e2c1a" stroke-width="1.4">
+        <g transform="translate(84 60)"><g class="fall"><use href="#mleaf" fill="#e9632b"/></g></g>
+        <g transform="translate(150 50)"><g class="fall"><use href="#mleaf" fill="#f0a63a" transform="scale(.85)"/></g></g>
+        <g transform="translate(250 56)"><g class="fall"><use href="#mleaf" fill="#d9472a" transform="scale(.9)"/></g></g>
+      </g>
+      <!-- 地球儀（社会） -->
+      <g>
+        <path d="M44 468h64M76 452v16" stroke="#5b2416" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="76" cy="406" r="38" fill="#f7cfa6" stroke="#5b2416" stroke-width="3"/>
+        <path d="M52 388c10-8 22-6 28 2c-2 8-12 10-12 18c-8 4-16-2-18-10zM86 384c8-4 18 0 20 8c-6 4-6 12-14 14c-6-6-10-14-6-22zM70 420c8-2 16 4 18 12c-6 4-14 4-18-2z" fill="#c8673c"/>
+        <ellipse cx="76" cy="406" rx="16" ry="38" fill="none" stroke="#5b2416" stroke-width="1.6" opacity=".6"/>
+        <path d="M38 406h76" stroke="#5b2416" stroke-width="1.6" opacity=".6"/>
+        <path d="M76 360a46 46 0 0 1 0 92" stroke="#5b2416" stroke-width="5" fill="none"/>
+      </g>
+      <g class="body">
+        <!-- 後ろ髪（短め） -->
+        <ellipse cx="200" cy="176" rx="72" ry="72" fill="#8e3519"/>
+        <!-- 首と服（パーカー） -->
+        <rect x="186" y="262" width="28" height="40" fill="#f3cfb6"/>
+        <path d="M96 470c4-100 30-150 74-166l30-8l30 8c44 16 70 66 74 166z" fill="#e48a4c" stroke="#5b2416" stroke-width="3"/>
+        <path d="M158 300c12 30 72 30 84 0c10 6 16 14 18 24c-22 32-98 32-120 0c2-10 8-18 18-24z" fill="#f2ad78" stroke="#5b2416" stroke-width="3"/>
+        <path d="M186 326l-2 40M214 326l2 40" stroke="#5b2416" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="184" cy="368" r="3.5" fill="#fff1e4" stroke="#5b2416" stroke-width="2"/>
+        <circle cx="216" cy="368" r="3.5" fill="#fff1e4" stroke="#5b2416" stroke-width="2"/>
+        <!-- 顔 -->
+        <path d="M144 176c-2 62 10 96 34 110c14 8 30 8 44 0c24-14 36-48 34-110z" fill="#fbe4d2" stroke="#5b2416" stroke-width="3"/>
+        <!-- 耳 -->
+        <path d="M144 214c-14-6-18 14-6 24" fill="#fbe4d2" stroke="#5b2416" stroke-width="3"/>
+        <path d="M256 214c14-6 18 14 6 24" fill="#fbe4d2" stroke="#5b2416" stroke-width="3"/>
+        <!-- 前髪（短くはねた髪） -->
+        <path d="M130 204c-8-74 26-108 70-108s80 32 70 108c-4-18-10-30-18-38l-4 24c-8-18-18-30-30-36l-6 26c-8-16-18-26-30-30l-8 28c-6-14-14-22-26-26l-6 30c-6-10-12-16-22-20z" fill="#8e3519" stroke="#5b2416" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M196 98c-6-16 2-28 16-32c-6 10-6 22-2 32" fill="#8e3519" stroke="#5b2416" stroke-width="3" stroke-linejoin="round"/>
+        <!-- もみじのヘアピン -->
+        <use href="#mleaf" transform="translate(242 160) rotate(18) scale(.95)" fill="#d9472a" stroke="#5b2416" stroke-width="1.6"/>
+        <!-- まゆ -->
+        <g class="brows" stroke="#5b2416" stroke-width="5" stroke-linecap="round" fill="none">
+          <path d="M162 194q14-6 28-2"/><path d="M210 192q14-4 28 2"/>
+        </g>
+        <!-- 目 -->
+        <g class="eyes">
+          <ellipse cx="178" cy="218" rx="11" ry="10" fill="#fff"/>
+          <ellipse cx="222" cy="218" rx="11" ry="10" fill="#fff"/>
+          <ellipse cx="179" cy="219" rx="7" ry="8.5" fill="#5b2416"/>
+          <ellipse cx="221" cy="219" rx="7" ry="8.5" fill="#5b2416"/>
+          <circle cx="182" cy="215" r="2.6" fill="#fff"/><circle cx="224" cy="215" r="2.6" fill="#fff"/>
+          <path d="M166 210q12-8 24 0M210 210q12-8 24 0" stroke="#5b2416" stroke-width="3" stroke-linecap="round" fill="none"/>
+        </g>
+        <g class="happy-eyes" stroke="#5b2416" stroke-width="4" stroke-linecap="round" fill="none">
+          <path d="M166 222q12-14 24 0"/><path d="M210 222q12-14 24 0"/>
+        </g>
+        <path d="M200 236l-3 12h5" stroke="#5b2416" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <ellipse cx="164" cy="246" rx="9" ry="4" fill="#f1a684" opacity=".7"/>
+        <ellipse cx="236" cy="246" rx="9" ry="4" fill="#f1a684" opacity=".7"/>
+        <!-- 口 -->
+        <path class="mouth-closed" d="M191 261q9 4 18 0" stroke="#5b2416" stroke-width="3" stroke-linecap="round" fill="none"/>
+        <ellipse class="mouth-open" cx="200" cy="264" rx="8" ry="7" fill="#5b2416"/>
+        <path class="smile" d="M184 257q16 18 32 0z" fill="#5b2416"/>
+        <!-- はてなマーク（ヒントのとき） -->
+        <text class="q-mark" x="282" y="150" font-size="48" font-weight="700" fill="#fff" stroke="#5b2416" stroke-width="2" font-family="sans-serif">?</text>
+        <!-- 社会の本 -->
+        <g>
+          <rect x="216" y="366" width="84" height="66" rx="4" fill="#b8401f" stroke="#5b2416" stroke-width="3"/>
+          <path d="M224 366v66" stroke="#5b2416" stroke-width="2" opacity=".6"/>
+          <rect x="236" y="378" width="52" height="20" rx="3" fill="#fbe4d2" stroke="#5b2416" stroke-width="2"/>
+          <path d="M244 388h36" stroke="#5b2416" stroke-width="2.5" stroke-linecap="round"/>
+          <use href="#mleaf" transform="translate(262 414) scale(.8)" fill="#f0a63a" stroke="#5b2416" stroke-width="1.6"/>
+        </g>
+        <path d="M206 390c-10 6-10 30 0 38c10 4 22 2 22-6v-28c0-6-12-8-22-4z" fill="#fbe4d2" stroke="#5b2416" stroke-width="3"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="panel">
+    <div class="top">
+      <span class="name">モミジ</span>
+      <span class="unit" id="unitLabel"></span>
+      <span id="scoreLine" hidden>第 <b id="qno">1</b> 問 / <b id="qtotal">10</b>　正解 <b id="score">0</b></span>
+    </div>
+    <div class="bubble compact" id="bubble" aria-live="polite">こんにちは、モミジです。出題する範囲を選んで「スタート」を押してね。</div>
+
+    <!-- 範囲えらび -->
+    <div class="setup" id="setup">
+      <div class="grid" id="grid" role="group" aria-label="出題範囲（分野と単元）"></div>
+      <div class="setup-actions">
+        <button class="primary" id="startBtn">スタート<small id="startSub"></small></button>
+        <button id="reviewBtn">まちがえた問題だけ<small id="reviewSub"></small></button>
+      </div>
+    </div>
+
+    <!-- 出題中 -->
+    <div class="quiz" id="quiz" hidden>
+      <div class="status" id="status"><span class="dot"></span><span class="heard" id="heard">マイクは待機中</span></div>
+      <form class="answer" id="answerForm" hidden>
+        <input id="answerInput" type="text" autocomplete="off" autocapitalize="off" enterkeyhint="done" placeholder="ここをタップ → キーボードのマイクで話す">
+        <button type="submit" class="primary">判定</button>
+      </form>
+      <div class="result" id="result" aria-live="polite"></div>
+      <div class="hint" id="hint" hidden></div>
+      <div class="controls">
+        <button class="primary" id="answerBtn" hidden>こたえる</button>
+        <button id="repeatBtn" hidden>もう一度きく</button>
+        <button id="revealBtn" hidden>答えを見る</button>
+        <button class="primary" id="nextBtn" hidden>次の問題</button>
+        <button class="primary" id="againBtn" hidden>もう一度（同じ範囲）</button>
+        <button id="retryMissBtn" hidden>まちがえた問題だけ</button>
+        <button id="menuBtn" hidden>範囲を選びなおす</button>
+      </div>
+    </div>
+
+    <div class="notice" id="notice" hidden></div>
+    <div class="teacher">
+      <span>先生用：</span>
+      <button id="okBtn">○ 正解にする</button>
+      <button id="ngBtn">× まちがいにする</button>
+      <label id="autoLabel"><input type="checkbox" id="autoListen"> 問題を読んだら自動で聞きとる</label>
+      <label>1回の問題数
+        <select id="countSel">
+          <option value="5">5問</option>
+          <option value="10" selected>10問</option>
+          <option value="20">20問</option>
+          <option value="0">全部</option>
+        </select>
+      </label>
+      <button id="quitBtn" hidden>やめて範囲えらびへ</button>
+      <button id="clearBtn">まちがい記録を消す</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* 問題データ：u は「分野＋単元番号」（g=地理, h=歴史, c=公民。例 h2=歴史の2番目「中世」）。ng は「ふくんでいたら不正解」にする言葉 */
+const QUESTIONS = [
+/* ===== 地理①：世界と日本のすがた ===== */
+  {u:"g1", q:"赤道を0度として、南北をそれぞれ90度に分けて、地球上の位置を表すものを何という？",
+   a:"緯度", accept:["緯度","いど","井戸","異動","移動"], ng:["経度","けいど","軽度"],
+   hints:["赤道と平行に引かれた線を使って表すよ。","ひらがな2文字で「い◯」だよ。"],
+   note:"北の方を北緯、南の方を南緯というよ。経度とセットで場所を表すんだ。"},
+  {u:"g1", q:"ロンドンを通る線を0度として、東西をそれぞれ180度に分けて、地球上の位置を表すものを何という？",
+   a:"経度", accept:["経度","けいど","軽度","経土"],
+   hints:["北極と南極を結ぶ線を使って表すよ。","ひらがな3文字で「け◯ど」だよ。"],
+   note:"東の方を東経、西の方を西経というよ。"},
+  {u:"g1", q:"イギリスの旧グリニッジ天文台を通る、経度0度の経線を何という？",
+   a:"本初子午線", accept:["本初子午線","ほんしょしごせん","本初","子午線"],
+   hints:["東経と西経の境目になる線だよ。","漢字5文字で「本初◯◯◯」だよ。"],
+   note:"日本の時刻の基準になる線は、兵庫県明石市を通る東経135度の経線だよ。"},
+  {u:"g1", q:"日本の時刻の基準になる経線は、東経何度？",
+   a:"135度", accept:["135","ひゃくさんじゅうご","百三十五"],
+   hints:["兵庫県の明石市を通っているよ。","100より大きくて、150より小さい数だよ。"],
+   note:"経度15度で1時間の時差が出るから、ロンドンとの時差は9時間になるよ。"},
+  {u:"g1", q:"地域によって基準になる時刻がちがうために生まれる、時刻のずれを何という？",
+   a:"時差", accept:["時差","じさ","自差"],
+   hints:["経度15度ごとに1時間ずつずれていくよ。","ひらがな2文字で「じ◯」だよ。"],
+   note:"東へ行くほど時刻は進んでいるよ。"},
+  {u:"g1", q:"太平洋のほぼ中央、経度180度の線にそって引かれた、ここをこえると日付が変わる線を何という？",
+   a:"日付変更線", accept:["日付変更線","ひづけへんこうせん","日付変更"],
+   hints:["西から東へこえるときは、日付を1日おくらせるよ。","漢字5文字で「日付◯◯◯」だよ。"],
+   note:"日本は日付変更線の近くにあるから、世界の中でも早く新しい1日が始まるよ。"},
+  {u:"g1", q:"六大陸の中で、いちばん面積が大きい大陸はどこ？",
+   a:"ユーラシア大陸", accept:["ユーラシア"],
+   hints:["日本のすぐ西に広がっている大陸だよ。","カタカナで「ユー」から始まるよ。"],
+   note:"ヨーロッパ州とアジア州は、このひとつの大陸の上にあるんだ。"},
+  {u:"g1", q:"三大洋の中で、いちばん広い海はどこ？",
+   a:"太平洋", accept:["太平洋","たいへいよう"], ng:["大西洋","たいせいよう"],
+   hints:["日本の東側に広がっている海だよ。","漢字3文字で、最後は「洋」だよ。"],
+   note:"三大洋は、太平洋・大西洋・インド洋の3つだよ。"},
+  {u:"g1", q:"中心からの距離と方位が正しく表される地図の描き方を何という？",
+   a:"正距方位図法", accept:["正距方位図法","せいきょほういずほう","正距方位","せいきょほうい"],
+   hints:["飛行機のルートを考えるときに使われる地図だよ。","「正しい距離」と「方位」から名前がついているよ。"],
+   note:"中心以外の2点の間の距離や方位は正しくないから注意しよう。"},
+  {u:"g1", q:"緯線と経線が直角に交わっていて、昔から航海に使われてきた地図の描き方を何という？",
+   a:"メルカトル図法", accept:["メルカトル"],
+   hints:["高い緯度ほど、陸地が大きく描かれてしまう地図だよ。","カタカナで「メル」から始まるよ。"],
+   note:"2点を結ぶ直線が、方位を一定にして進むルートになるので、航海図に便利なんだ。"},
+  {u:"g1", q:"一年中気温が高くて雨が多く、赤道の近くに広がる気候帯を何という？",
+   a:"熱帯", accept:["熱帯","ねったい","熱たい"],
+   hints:["うっそうとしたジャングルが広がるところもあるよ。","漢字2文字で、「熱」の字が入るよ。"],
+   note:"熱帯には、うっそうとした熱帯雨林や、草原のサバナが広がっているよ。"},
+  {u:"g1", q:"雨がとても少なく、砂漠や草の短い草原が広がる気候帯を何という？",
+   a:"乾燥帯", accept:["乾燥帯","かんそうたい","感想帯","乾燥"],
+   hints:["サハラ砂漠がある気候帯だよ。","漢字3文字で「◯◯帯」、洗たく物がよくかわきそうな名前だよ。"],
+   note:"乾燥帯では、水がわく場所のオアシスのまわりで農業が行われているよ。"},
+  {u:"g1", q:"冬の寒さがきびしく、タイガとよばれる針葉樹の森が広がる気候帯を何という？",
+   a:"冷帯", accept:["冷帯","れいたい","亜寒帯","あかんたい","霊体","例題"],
+   hints:["シベリアやカナダ、北海道もふくまれる気候帯だよ。","漢字2文字で、「冷たい」の「冷」の字を使うよ。"],
+   note:"冷帯は、亜寒帯ともいうよ。さらに寒いのが寒帯だね。"},
+  {u:"g1", q:"アンデス山脈などの標高が高いところで見られる、同じ緯度の低地よりすずしい気候を何という？",
+   a:"高山気候", accept:["高山気候","こうざんきこう","高山","こうざん"],
+   hints:["高いところほど気温が下がることから生まれる気候だよ。","漢字4文字で「◯◯気候」だよ。"],
+   note:"アンデスの高地では、リャマやアルパカを飼い、じゃがいもを育てているよ。"},
+  {u:"g1", q:"1日5回、聖地メッカの方に向かっていのる宗教を何という？",
+   a:"イスラム教", accept:["イスラム","イスラーム"],
+   hints:["豚肉を食べない、お酒を飲まないなどのきまりがあるよ。","カタカナで「イス」から始まるよ。"],
+   note:"経典はコーランで、西アジアや北アフリカに信者が多いよ。"},
+  {u:"g1", q:"三大宗教のうち、世界でいちばん信者が多く、日曜日に教会で礼拝をする宗教を何という？",
+   a:"キリスト教", accept:["キリスト"],
+   hints:["クリスマスはこの宗教の行事だよ。","カタカナで「キリ」から始まるよ。"],
+   note:"経典は聖書。ヨーロッパや南北アメリカに信者が多いよ。"},
+  {u:"g1", q:"海岸線から200海里までの範囲で、沿岸の国が魚や鉱産資源を自分のものとして利用できる水域を何という？",
+   a:"排他的経済水域", accept:["排他的経済水域","はいたてきけいざいすいいき","排他的経済","経済水域","はいたてき"],
+   hints:["領海の外側に広がる水域だよ。","「ほかの国をしめ出す」という意味の言葉から始まるよ。"],
+   note:"日本は島国なので、排他的経済水域が国土の面積よりずっと広いんだ。"},
+  {u:"g1", q:"東京都に属する、日本の南のはしの島を何という？",
+   a:"沖ノ鳥島", accept:["沖ノ鳥島","おきのとりしま","沖の鳥島","おきのとり"],
+   hints:["波でけずられて島がなくならないように、護岸工事をしたよ。","名前に「鳥」が入っているよ。"],
+   note:"この島がなくなると、まわりの広い排他的経済水域を失ってしまうんだ。"},
+  {u:"g1", q:"北方領土にふくまれる、日本の北のはしの島を何という？",
+   a:"択捉島", accept:["択捉島","えとろふとう","えとろふじま","択捉","えとろふ"],
+   hints:["今はロシアが占領している島だよ。","「え」から始まる島だよ。"],
+   note:"北方領土は、択捉島・国後島・色丹島・歯舞群島のことだよ。"},
+  {u:"g1", q:"国の領域のうち、海岸線から12海里までの、その国の主権がおよぶ海を何という？",
+   a:"領海", accept:["領海","りょうかい","了解","領界"],
+   hints:["領土・領空とあわせて、国の領域になるよ。","漢字2文字で、「海」の字が入るよ。"],
+   note:"領土・領海・領空をあわせて、その国の領域というよ。"},
+
+/* ===== 地理②：世界の諸地域 ===== */
+  {u:"g2", q:"東南アジアの国々が加わっている、地域協力のための組織をアルファベットの略称で何という？",
+   a:"ASEAN", accept:["asean","アセアン","東南アジア諸国連合"],
+   hints:["カタカナで読むと4文字だよ。","「ア」から始まるよ。"],
+   note:"日本にとっても、東南アジアは大切な貿易相手なんだ。"},
+  {u:"g2", q:"中国で、外国の企業を呼びこむために、税金を安くするなどの優遇をしている地域を何という？",
+   a:"経済特区", accept:["経済特区","けいざいとっく","特区"],
+   hints:["シェンチェンなど、海沿いの地域に設けられたよ。","漢字4文字で「経済◯◯」だよ。"],
+   note:"経済特区をきっかけに、中国は「世界の工場」とよばれるほど工業が発展したよ。"},
+  {u:"g2", q:"中国の人口のおよそ9割をしめている民族を何という？",
+   a:"漢民族", accept:["漢民族","かんみんぞく","漢族","かんぞく","韓民族"],
+   hints:["中国の文字の名前にも、この民族の名がついているよ。","漢字3文字で「◯民族」だよ。"],
+   note:"中国には、ほかに50をこえる少数民族がくらしているよ。"},
+  {u:"g2", q:"インドで発達している、コンピューターのソフトウェアづくりなどの産業を何という？",
+   a:"ICT産業", accept:["ict","アイシーティー","情報通信技術","情報通信"],
+   hints:["英語が話せる技術者が多いことも発展の理由だよ。","アルファベット3文字＋「産業」だよ。"],
+   note:"アメリカと昼と夜が逆になる時差を生かして、仕事を引きついでいるよ。"},
+  {u:"g2", q:"西アジアのペルシャ湾のまわりで、たくさんとれる鉱産資源は何？",
+   a:"石油", accept:["石油","せきゆ","原油","げんゆ"],
+   hints:["ガソリンやプラスチックの原料になるよ。","漢字2文字で「石◯」だよ。"],
+   note:"西アジアの産油国は、石油を輸出して豊かになった国が多いよ。"},
+  {u:"g2", q:"ヨーロッパの国々が、政治や経済で結びつくためにつくった組織をアルファベットの略称で何という？",
+   a:"EU", accept:["eu","イーユー","ヨーロッパ連合","欧州連合"],
+   hints:["加盟国の多くで、共通の通貨ユーロが使われているよ。","アルファベット2文字だよ。"],
+   note:"EUの中では、国境をこえて自由に行き来したり、仕事をしたりできるよ。"},
+  {u:"g2", q:"ヨーロッパで行われている、小麦などの作物を育てながら、豚や牛を飼う農業を何という？",
+   a:"混合農業", accept:["混合農業","こんごうのうぎょう","混合"],
+   hints:["作物づくりと家畜を飼うことを「まぜあわせた」農業だよ。","漢字4文字で「◯◯農業」だよ。"],
+   note:"ほかに、乳牛を飼う酪農もヨーロッパでさかんだよ。"},
+  {u:"g2", q:"夏にオリーブやぶどうを、雨が多い冬に小麦を育てる、ヨーロッパ南部の農業を何という？",
+   a:"地中海式農業", accept:["地中海式農業","ちちゅうかいしきのうぎょう","地中海式","地中海"],
+   hints:["ある大きな海のまわりで行われている農業だよ。","「◯◯◯式農業」、海の名前が入るよ。"],
+   note:"夏に乾燥する気候に強い作物を育てているんだ。"},
+  {u:"g2", q:"植民地だったころにつくられた大農園で、カカオやコーヒーなどを大量に育てる農業を何という？",
+   a:"プランテーション", accept:["プランテーション"],
+   hints:["輸出するための作物を、たくさん育てる農園だよ。","カタカナで「プラン」から始まるよ。"],
+   note:"アフリカや東南アジアなどで見られるよ。"},
+  {u:"g2", q:"一部の農産物や鉱産資源の輸出にたよっている経済を何という？",
+   a:"モノカルチャー経済", accept:["モノカルチャー"],
+   hints:["「モノ」は「ひとつ」という意味だよ。","カタカナで「モノ」から始まるよ。"],
+   note:"天候や値段の変化で、国の収入が大きくゆれてしまうのが問題なんだ。"},
+  {u:"g2", q:"アメリカで行われている、地域の気候や土地に合った農産物を育てることを何という？",
+   a:"適地適作", accept:["適地適作","てきちてきさく"],
+   hints:["「適した土地」で「適した作物」をつくるという意味だよ。","漢字4文字で「適◯適◯」だよ。"],
+   note:"アメリカは「世界の食料庫」とよばれるほど、農産物の輸出が多いよ。"},
+  {u:"g2", q:"アメリカのサンフランシスコの近くにある、ICT関連の企業が集まっている地域を何という？",
+   a:"シリコンバレー", accept:["シリコンバレー","シリコン"],
+   hints:["コンピューターの部品の材料になる物質の名前が入っているよ。","カタカナで「シリコン◯◯◯」だよ。"],
+   note:"世界的なインターネット企業がたくさん生まれた地域だよ。"},
+  {u:"g2", q:"メキシコなどからアメリカへやって来た、スペイン語を話す移民を何という？",
+   a:"ヒスパニック", accept:["ヒスパニック"],
+   hints:["農業や建設業などで多く働いているよ。","カタカナで「ヒス」から始まるよ。"],
+   note:"アメリカでは、ヒスパニックの人口が増えているよ。"},
+  {u:"g2", q:"アメリカで、北緯37度より南にあり、工業が発展している地域を何という？",
+   a:"サンベルト", accept:["サンベルト"],
+   hints:["あたたかく、日ざしが強い地域だよ。","「太陽」を英語で言うと…？"],
+   note:"土地が広く、働く人も多いので、航空機やICTなどの工業が集まったよ。"},
+  {u:"g2", q:"アマゾン川の流域で行われてきた、森林を焼いて、その灰を肥料にする農業を何という？",
+   a:"焼畑農業", accept:["焼畑農業","やきはたのうぎょう","焼き畑","焼畑","やきはた"],
+   hints:["森を焼いて畑をつくるよ。","漢字で書くと「焼◯農業」だよ。"],
+   note:"数年たって土地がやせると、別の場所へ移動していたよ。"},
+  {u:"g2", q:"ブラジルでさとうきびなどから作られ、自動車の燃料などに使われているものを何という？",
+   a:"バイオエタノール", accept:["バイオエタノール","バイオ燃料","バイオ"],
+   hints:["植物から作る燃料だよ。","カタカナで「バイオ」から始まるよ。"],
+   note:"燃料用の畑をつくるために、森林が切りひらかれる問題もあるよ。"},
+  {u:"g2", q:"南アメリカ大陸の西側を、南北に長く走っている山脈を何という？",
+   a:"アンデス山脈", accept:["アンデス"],
+   hints:["高山気候が見られるところだよ。","カタカナで「アン」から始まるよ。"],
+   note:"東側には、世界一流域面積が広いアマゾン川が流れているよ。"},
+  {u:"g2", q:"オーストラリアに古くから住んでいる先住民を何という？",
+   a:"アボリジニ", accept:["アボリジニ","アボリジナル"],
+   hints:["ウルルという大きな岩を聖地としているよ。","カタカナで「アボ」から始まるよ。"],
+   note:"今のオーストラリアは、さまざまな文化を認め合う多文化社会をめざしているよ。"},
+  {u:"g2", q:"オーストラリアがかつて行っていた、ヨーロッパ系以外の移民を制限する政策を何という？",
+   a:"白豪主義", accept:["白豪主義","はくごうしゅぎ","白豪"],
+   hints:["「白」の字が入っているよ。","漢字4文字で「◯◯主義」だよ。"],
+   note:"1970年代にやめて、アジアからの移民も増えたよ。"},
+  {u:"g2", q:"アフリカで、外国の企業などが開発してきた、銅やコバルトなど、量が少なく貴重な金属をまとめて何という？",
+   a:"レアメタル", accept:["レアメタル"],
+   hints:["スマートフォンなどの電子機器に使われるよ。","「めずらしい金属」という意味のカタカナだよ。"],
+   note:"アフリカには、金やダイヤモンド、レアメタルなどの鉱産資源が多いよ。"},
+
+/* ===== 地理③：日本の自然・人口・産業 ===== */
+  {u:"g3", q:"日本列島もふくまれている、太平洋をぐるりととりまく、山が多く地震や火山の多い地帯を何という？",
+   a:"環太平洋造山帯", accept:["環太平洋造山帯","かんたいへいようぞうざんたい","環太平洋","かんたいへいよう"],
+   hints:["「太平洋をとりまく」という意味の言葉で始まるよ。","最後は「造山帯」だよ。"],
+   note:"もうひとつの大きな造山帯は、アルプス・ヒマラヤ造山帯だよ。"},
+  {u:"g3", q:"川が山地から平地に出るところに、土砂が積もってできた、おうぎのような形の地形を何という？",
+   a:"扇状地", accept:["扇状地","せんじょうち","扇状"],
+   hints:["水はけがよく、果樹園によく使われるよ。","漢字3文字で、「扇」の字が入るよ。"],
+   note:"山梨県の甲府盆地などでは、扇状地でぶどうやももがつくられているよ。"},
+  {u:"g3", q:"川が海に流れこむところに、細かい土砂が積もってできた、低くて平らな地形を何という？",
+   a:"三角州", accept:["三角州","さんかくす","さんかくしゅう","デルタ"],
+   hints:["扇状地よりも、海に近いところにできる地形だよ。","漢字3文字で「三◯◯」だよ。"],
+   note:"広島市の中心部は、三角州の上に広がっているよ。"},
+  {u:"g3", q:"山地が海にせまり、のこぎりの歯のように海岸線が入り組んでいる海岸を何という？",
+   a:"リアス海岸", accept:["リアス"],
+   hints:["三陸海岸や志摩半島で見られるよ。","カタカナで「リ」から始まるよ。"],
+   note:"波がおだやかなので、養殖業がさかんだよ。"},
+  {u:"g3", q:"夏は南東から、冬は北西からふく、季節によって向きが変わる風を何という？",
+   a:"季節風", accept:["季節風","きせつふう","モンスーン"],
+   hints:["冬には日本海側に雪をたくさん降らせるよ。","漢字3文字で「◯◯風」だよ。"],
+   note:"季節風の影響で、冬の日本海側は雪が多く、太平洋側は晴れの日が多いよ。"},
+  {u:"g3", q:"6月から7月ごろに、北海道以外で雨の日が長く続く時期を何という？",
+   a:"梅雨", accept:["つゆ","梅雨","ばいう"],
+   hints:["あじさいが咲くころだよ。","漢字2文字で、果物の「梅」の字を使うよ。"],
+   note:"梅雨や台風の雨は、田んぼの水などに役立つけれど、水害の原因にもなるよ。"},
+  {u:"g3", q:"都市に人口が集まりすぎて、交通渋滞やごみの問題などが起こる状態を何という？",
+   a:"過密", accept:["過密","かみつ","過蜜"],
+   hints:["人が「ぎっしり」集まりすぎている状態だよ。","ひらがな3文字で「か◯◯」だよ。"],
+   note:"反対に、人口が減りすぎてしまうことを過疎というよ。"},
+  {u:"g3", q:"人口が大きく減って、学校や病院を続けるのがむずかしくなるなど、地域の生活が成り立ちにくくなる状態を何という？",
+   a:"過疎", accept:["過疎","かそ","仮想","仮装","火葬","下層"],
+   hints:["山間部や離島で深刻になっているよ。","ひらがな2文字で「か◯」だよ。"],
+   note:"過疎の地域では、特産品づくりや観光で、人をよびこむ取り組みをしているよ。"},
+  {u:"g3", q:"生まれる子どもの数が減り、お年寄りの割合が高くなっていくことを何という？",
+   a:"少子高齢化", accept:["少子高齢化","しょうしこうれいか","少子高齢"],
+   hints:["日本の人口ピラミッドが、つぼ型になっている理由だよ。","漢字5文字で「少子◯◯化」だよ。"],
+   note:"働く世代が減るので、年金や医療の費用をどう支えるかが課題だよ。"},
+  {u:"g3", q:"洪水や津波などの災害が起きたときに、危険な場所や避難する場所を示した地図を何という？",
+   a:"ハザードマップ", accept:["ハザードマップ","ハザード","防災マップ"],
+   hints:["市町村がつくって配っているよ。","カタカナで「◯◯◯◯マップ」だよ。"],
+   note:"自分の住む地域のハザードマップを、一度見ておこう。"},
+  {u:"g3", q:"太陽光や風力、地熱など、使ってもなくならず、くり返し利用できるエネルギーを何という？",
+   a:"再生可能エネルギー", accept:["再生可能","さいせいかのう"],
+   hints:["石油や石炭とちがって、なくならないエネルギーだよ。","「再生◯◯エネルギー」だよ。"],
+   note:"発電のときに二酸化炭素をほとんど出さないのも長所だよ。"},
+  {u:"g3", q:"関東地方から九州地方の北部にかけて、海沿いに帯のように工業地帯・地域が続いているところを何という？",
+   a:"太平洋ベルト", accept:["太平洋ベルト","たいへいようベルト"],
+   hints:["ある海の名前が入っているよ。","「◯◯◯ベルト」だよ。"],
+   note:"原料の輸入や製品の輸出に便利な、海沿いに工場が集まったんだ。"},
+  {u:"g3", q:"愛知県を中心に広がり、自動車工業がさかんで、日本でいちばん工業の出荷額が多い工業地帯を何という？",
+   a:"中京工業地帯", accept:["中京","ちゅうきょう"],
+   hints:["名古屋市を中心とする地域だよ。","漢字2文字＋「工業地帯」、最初は「中」だよ。"],
+   note:"豊田市には大きな自動車会社と、たくさんの部品工場があるよ。"},
+  {u:"g3", q:"大都市の近くで、野菜や花などを育てて、新鮮なうちに出荷する農業を何という？",
+   a:"近郊農業", accept:["近郊農業","きんこうのうぎょう","近郊"],
+   hints:["大都市から「近い」ところで行う農業だよ。","漢字4文字で「◯◯農業」だよ。"],
+   note:"千葉県や茨城県などで、東京向けの野菜がたくさんつくられているよ。"},
+  {u:"g3", q:"あたたかい気候とビニールハウスなどを利用して、野菜をふつうより早い時期に出荷する育て方を何という？",
+   a:"促成栽培", accept:["促成栽培","そくせいさいばい","促成","そくせい"],
+   hints:["高知平野や宮崎平野で、なすやピーマンがつくられているよ。","「◯◯栽培」、成長を「うながす」という意味だよ。"],
+   note:"ほかの産地のものが少ない時期に出荷するので、高く売れるんだ。"},
+  {u:"g3", q:"夏でもすずしい高原の気候を利用して、野菜をふつうより遅い時期に出荷する育て方を何という？",
+   a:"抑制栽培", accept:["抑制栽培","よくせいさいばい","抑制","よくせい"],
+   hints:["長野県や群馬県の高原で、レタスやキャベツがつくられているよ。","「◯◯栽培」、成長を「おさえる」という意味だよ。"],
+   note:"高原でつくる野菜は、高原野菜ともよばれるよ。"},
+  {u:"g3", q:"魚や貝を、いけすなどで大きくなるまで育ててから出荷する漁業を何という？",
+   a:"養殖業", accept:["養殖","ようしょく","洋食"],
+   hints:["かきやのり、ほたてなどで行われているよ。","ひらがなで「よう◯◯◯」だよ。"],
+   note:"たまごからかえした稚魚を海に放してからとる漁業は、栽培漁業というよ。"},
+  {u:"g3", q:"たまごからかえした稚魚をしばらく育ててから川や海に放し、大きくなってからとる漁業を何という？",
+   a:"栽培漁業", accept:["栽培漁業","さいばいぎょぎょう"], ng:["養殖"],
+   hints:["さけやひらめなどで行われているよ。","植物を育てるときにも使う言葉＋「漁業」だよ。"],
+   note:"「とる漁業」から「育てる漁業」への転換が進んでいるよ。"},
+  {u:"g3", q:"国内で食べる食料のうち、国内で生産されたものの割合を何という？",
+   a:"食料自給率", accept:["食料自給率","しょくりょうじきゅうりつ","自給率","じきゅうりつ"],
+   hints:["日本はこの割合が低く、小麦や大豆の多くを輸入しているよ。","「食料◯◯率」だよ。"],
+   note:"日本の食料自給率は、カロリーで見ると約4割だよ。"},
+  {u:"g3", q:"商業やサービス業、運輸業などの産業を、まとめて何という？",
+   a:"第三次産業", accept:["第三次","第3次","だいさんじ"],
+   hints:["農業や漁業は第一次、工業は第二次産業だよ。","「第◯次産業」だよ。"],
+   note:"日本では、働く人の7割以上が第三次産業で働いているよ。"},
+
+/* ===== 地理④：日本の諸地域 ===== */
+  {u:"g4", q:"九州南部に広がる、火山の噴出物が積もってできた、水はけのよい台地を何という？",
+   a:"シラス台地", accept:["シラス"],
+   hints:["鹿児島県や宮崎県に広がっているよ。","カタカナで「シ」から始まるよ。"],
+   note:"稲作には向かないので、さつまいもや茶をつくったり、畜産を行ったりしているよ。"},
+  {u:"g4", q:"沖縄県に多くあり、県の面積のおよそ8パーセントをしめている、アメリカ軍の施設を何という？",
+   a:"米軍基地", accept:["米軍基地","べいぐんきち","アメリカ軍基地","基地"],
+   hints:["飛行機の騒音や事故などが問題になっているよ。","「米軍◯◯」、漢字2文字が後ろにつくよ。"],
+   note:"沖縄島の面積の約15パーセントが、アメリカ軍の施設になっているよ。"},
+  {u:"g4", q:"瀬戸内海の沿岸に広がる、石油化学工業や鉄鋼業がさかんな工業地域を何という？",
+   a:"瀬戸内工業地域", accept:["瀬戸内","せとうち"],
+   hints:["塩田のあと地や、うめ立て地に工場がつくられたよ。","海の名前の一部＋「工業地域」だよ。"],
+   note:"倉敷市の水島地区などに、石油化学コンビナートがあるよ。"},
+  {u:"g4", q:"本州と四国を結ぶ、3つのルートの橋をまとめて何という？",
+   a:"本州四国連絡橋", accept:["本州四国連絡橋","ほんしゅうしこくれんらくきょう","本四連絡橋","連絡橋","れんらくきょう"],
+   hints:["瀬戸大橋や明石海峡大橋がふくまれるよ。","「本州◯◯連絡橋」だよ。"],
+   note:"便利になった一方で、大都市に買い物客が流れる「ストロー現象」も起きたよ。"},
+  {u:"g4", q:"滋賀県にある、日本でいちばん大きな湖を何という？",
+   a:"琵琶湖", accept:["琵琶湖","びわこ","びわ湖"],
+   hints:["「近畿地方の水がめ」とよばれているよ。","ひらがな3文字で「び◯こ」だよ。"],
+   note:"水質を守るため、りんをふくむ合成洗剤の使用をやめる運動が起こったよ。"},
+  {u:"g4", q:"大阪湾の沿岸を中心に広がり、中小企業の工場が多い工業地帯を何という？",
+   a:"阪神工業地帯", accept:["阪神","はんしん"],
+   hints:["大阪と神戸から1文字ずつとった名前だよ。","漢字2文字＋「工業地帯」、プロ野球チームの名前にもあるよ。"],
+   note:"東大阪市などには、高い技術をもつ中小企業がたくさんあるよ。"},
+  {u:"g4", q:"中部地方の中央にある、飛騨山脈・木曽山脈・赤石山脈をまとめて何という？",
+   a:"日本アルプス", accept:["日本アルプス","にほんアルプス","アルプス"],
+   hints:["ヨーロッパの有名な山脈の名前からついたよ。","「日本◯◯◯◯」、カタカナが入るよ。"],
+   note:"3000メートル級の山々が連なり、「日本の屋根」ともよばれるよ。"},
+  {u:"g4", q:"北陸地方で、冬の雪で農作業ができない時期の副業から発達した、その土地に根づいた産業を何という？",
+   a:"地場産業", accept:["地場産業","じばさんぎょう","地場","じば"],
+   hints:["福井県鯖江市のめがねわくなどが有名だよ。","「◯◯産業」、地元の場所という意味の言葉だよ。"],
+   note:"輪島塗のような伝統的工芸品も、地場産業から生まれたものが多いよ。"},
+  {u:"g4", q:"関東平野の台地をおおっている、火山灰が積もってできた赤土の層を何という？",
+   a:"関東ローム", accept:["関東ローム","かんとうローム","ローム"],
+   hints:["富士山や浅間山などの火山灰が積もったものだよ。","「関東◯◯◯」、カタカナが入るよ。"],
+   note:"関東ロームの台地は水が得にくいので、畑として使われてきたよ。"},
+  {u:"g4", q:"東京湾の西側の沿岸に広がり、印刷業がさかんなことでも知られる工業地帯を何という？",
+   a:"京浜工業地帯", accept:["京浜","けいひん"],
+   hints:["東京と横浜から1文字ずつとった名前だよ。","漢字2文字＋「工業地帯」だよ。"],
+   note:"東京には情報が集まるので、新聞や本などの印刷業がさかんなんだ。"},
+  {u:"g4", q:"都市の中心部で、周りの地域より気温が高くなる現象を何という？",
+   a:"ヒートアイランド現象", accept:["ヒートアイランド"],
+   hints:["地図で気温を色分けすると、熱い島のように見えるよ。","カタカナで「ヒート」から始まるよ。"],
+   note:"アスファルトやエアコンの熱が原因だよ。屋上を緑にする対策もあるよ。"},
+  {u:"g4", q:"通勤や通学で人が集まってくるため、都心では夜より昼の人口が多くなる。この昼の人口を何という？",
+   a:"昼間人口", accept:["昼間人口","ちゅうかんじんこう","ひるまじんこう","昼間"], ng:["夜間"],
+   hints:["夜の人口は「夜間人口」というよ。","「◯◯人口」、昼のことを2文字の漢字で表すよ。"],
+   note:"東京都の中心部では、昼間人口が夜間人口の何倍にもなるよ。"},
+  {u:"g4", q:"東北地方の太平洋側に、夏にふいてくる、冷たくしめった北東の風を何という？",
+   a:"やませ", accept:["やませ","山背"],
+   hints:["この風が続くと、稲が育たない冷害が起きやすいよ。","ひらがな3文字で「や◯◯」だよ。"],
+   note:"寒さに強い品種の米を開発するなどの対策をしてきたよ。"},
+  {u:"g4", q:"青森県で毎年夏に行われる、大きな人形の灯籠をひいて町をねり歩く祭りを何という？",
+   a:"ねぶた祭", accept:["ねぶたまつり","ねぶた","ねぷた","ネブタ"],
+   hints:["東北三大祭りのひとつだよ。","ひらがな3文字＋「祭」で、「ね」から始まるよ。"],
+   note:"東北三大祭りは、青森ねぶた祭・秋田竿燈まつり・仙台七夕まつりだよ。"},
+  {u:"g4", q:"岩手県の南部鉄器のように、昔からの技術でつくられ、国が指定した品物を何という？",
+   a:"伝統的工芸品", accept:["伝統的工芸品","でんとうてきこうげいひん","伝統工芸品","伝統工芸","でんとうこうげい"],
+   hints:["山形県の天童将棋駒も、そのひとつだよ。","「伝統的◯◯品」だよ。"],
+   note:"後をつぐ人が少ないことが、多くの産地の悩みだよ。"},
+  {u:"g4", q:"北海道に古くから住み、独自の言葉や文化をもつ先住民族を何という？",
+   a:"アイヌ", accept:["アイヌ"],
+   hints:["北海道の地名には、この民族の言葉からきたものが多いよ。","カタカナ3文字で「ア」から始まるよ。"],
+   note:"2019年に、アイヌ民族を先住民族と明記した法律ができたよ。"},
+  {u:"g4", q:"北海道の十勝平野などで行われている、同じ畑で育てる作物を年ごとに順番に変えていく方法を何という？",
+   a:"輪作", accept:["輪作","りんさく"],
+   hints:["同じ作物を続けてつくると、土地がやせてしまうのを防ぐ工夫だよ。","ひらがな4文字で「りん◯◯」だよ。"],
+   note:"十勝平野では、じゃがいも・小麦・てんさい・豆類などを順番に育てているよ。"},
+  {u:"g4", q:"北海道の根釧台地などでさかんな、乳牛を飼って牛乳やチーズなどをつくる農業を何という？",
+   a:"酪農", accept:["酪農","らくのう","楽農"],
+   hints:["すずしい気候が、乳牛を飼うのに向いているよ。","ひらがな4文字で「らく◯◯」だよ。"],
+   note:"北海道は、日本の生乳の半分以上を生産しているよ。"},
+  {u:"g4", q:"明治時代に官営の八幡製鉄所がつくられ、鉄鋼業から発展した、九州北部の工業地帯を何という？",
+   a:"北九州工業地帯", accept:["北九州","きたきゅうしゅう"],
+   hints:["中国から鉄鉱石、近くの筑豊炭田から石炭を手に入れやすかったよ。","地方名に「北」がついた名前＋「工業地帯」だよ。"],
+   note:"今は、IC（集積回路）や自動車の工場が増えているよ。工業地域とよぶこともあるよ。"},
+  {u:"g4", q:"鳥取県の日本海の沿岸に広がる、風で運ばれた砂が積もってできた大きな砂の丘を何という？",
+   a:"鳥取砂丘", accept:["鳥取砂丘","とっとりさきゅう","砂丘","さきゅう"],
+   hints:["観光地として有名で、らくだに乗れるところもあるよ。","県の名前＋「◯◯」、漢字2文字だよ。"],
+   note:"砂丘の近くでは、かんがい設備を整えて、らっきょうやながいもをつくっているよ。"},
+/* ===== 歴史①：原始・古代（〜平安） ===== */
+  {u:"h1", q:"縄文時代につくられた、表面に縄を転がしたような模様がついた土器を何という？",
+   a:"縄文土器", accept:["縄文土器","じょうもんどき","縄文"], ng:["弥生","やよい"],
+   hints:["時代の名前と同じ言葉が入っているよ。","「◯◯土器」、漢字2文字が前につくよ。"],
+   note:"縄文土器は厚くて黒っぽく、弥生土器はうすくてかたいのが特ちょうだよ。"},
+  {u:"h1", q:"縄文時代の人々が、食べた貝のからなどを捨てていた場所のあとを何という？",
+   a:"貝塚", accept:["貝塚","かいづか","かいずか"],
+   hints:["当時の人々の食べ物やくらしがわかる場所だよ。","漢字2文字で、「貝」の字が入るよ。"],
+   note:"アメリカ人のモースが発見した、東京の大森貝塚が有名だよ。"},
+  {u:"h1", q:"弥生時代に大陸から伝わり、各地に広まった農業は何？",
+   a:"稲作", accept:["稲作","いなさく","米づくり","米作り","こめづくり"],
+   hints:["今の日本人の主食をつくる農業だよ。","漢字2文字で「◯作」だよ。"],
+   note:"稲作が広まると、むらどうしで土地や水をめぐる争いも起こるようになったよ。"},
+  {u:"h1", q:"弥生時代に、収穫した米を、ねずみや湿気から守るためにつくられた倉庫を何という？",
+   a:"高床倉庫", accept:["高床倉庫","たかゆかそうこ","高床","たかゆか"],
+   hints:["ゆかを地面から高くしてあるよ。","「◯◯倉庫」、漢字2文字が前につくよ。"],
+   note:"静岡県の登呂遺跡などで、高床倉庫のあとが見つかっているよ。"},
+  {u:"h1", q:"3世紀ごろ、邪馬台国をおさめ、中国の魏に使いを送った女王はだれ？",
+   a:"卑弥呼", accept:["卑弥呼","ひみこ"],
+   hints:["うらないによって政治を行ったといわれているよ。","ひらがな3文字で「ひ◯◯」だよ。"],
+   note:"魏の王から「親魏倭王」の称号や銅鏡を授けられたと、中国の歴史書に書かれているよ。"},
+  {u:"h1", q:"3世紀の後半から各地につくられた、王や豪族の大きな墓を何という？",
+   a:"古墳", accept:["古墳","こふん","古糞","子分"],
+   hints:["大阪府の大仙古墳は、日本最大のものだよ。","ひらがな3文字で「こ◯◯」だよ。"],
+   note:"四角と円を組み合わせた形のものを、前方後円墳というよ。"},
+  {u:"h1", q:"古墳のまわりや頂上に並べられた、人や馬、家などの形をした焼き物を何という？",
+   a:"埴輪", accept:["埴輪","はにわ"],
+   hints:["素焼きの土の焼き物だよ。","ひらがな3文字で「は◯◯」だよ。"],
+   note:"土偶は縄文時代、埴輪は古墳時代のものだよ。まちがえないようにしよう。"},
+  {u:"h1", q:"中国や朝鮮半島から日本に移り住み、漢字や仏教、焼き物の技術などを伝えた人々を何という？",
+   a:"渡来人", accept:["渡来人","とらいじん","渡来"],
+   hints:["海を「わたって」きた人々だよ。","漢字3文字で「◯◯人」だよ。"],
+   note:"かたくて灰色の土器、須恵器をつくる技術も、渡来人が伝えたよ。"},
+  {u:"h1", q:"聖徳太子が、家がらにとらわれず、才能や功績のある人を役人に取り立てるために定めた制度を何という？",
+   a:"冠位十二階", accept:["冠位十二階","かんいじゅうにかい","冠位12階","冠位"],
+   hints:["役人の位を、かんむりの色で区別したよ。","「冠位◯◯◯」、数字が入るよ。"],
+   note:"同じころ、役人の心がまえを示す十七条の憲法も定められたよ。"},
+  {u:"h1", q:"聖徳太子が、仏教や儒教の考えを取り入れて、役人の心がまえを示したきまりを何という？",
+   a:"十七条の憲法", accept:["十七条の憲法","じゅうしちじょうのけんぽう","十七条憲法","17条の憲法","17条憲法","十七条","17条"],
+   hints:["「和を大切にしなさい」という言葉から始まるよ。","「◯◯◯の憲法」、数字が入るよ。"],
+   note:"今の日本国憲法のような、国の決まりではなく、役人への教えだよ。"},
+  {u:"h1", q:"聖徳太子が建てたといわれる、現存する世界最古の木造建築がある寺を何という？",
+   a:"法隆寺", accept:["法隆寺","ほうりゅうじ","法隆"],
+   hints:["奈良県の斑鳩にある寺だよ。","漢字3文字で「法◯寺」だよ。"],
+   note:"法隆寺を中心とする文化を、飛鳥文化というよ。"},
+  {u:"h1", q:"645年、中大兄皇子と中臣鎌足が、蘇我氏をたおして始めた政治の改革を何という？",
+   a:"大化の改新", accept:["大化の改新","たいかのかいしん","大化改新","大化"],
+   hints:["このとき、日本で初めて元号が定められたといわれるよ。","「◯◯の改新」、元号が入るよ。"],
+   note:"土地と人々を国が直接おさめる、公地・公民の方針が示されたよ。"},
+  {u:"h1", q:"701年に、唐の法律にならってつくられた、国のしくみを定めた法律を何という？",
+   a:"大宝律令", accept:["大宝律令","たいほうりつりょう","大宝"],
+   hints:["「律」は刑罰、「令」は政治のきまりのことだよ。","「◯◯律令」、元号が入るよ。"],
+   note:"この法律にもとづいて政治を行う国家を、律令国家というよ。"},
+  {u:"h1", q:"710年に、唐の都の長安にならって、奈良につくられた都を何という？",
+   a:"平城京", accept:["平城京","へいじょうきょう"],
+   hints:["ここに都があった時代を、奈良時代というよ。","漢字3文字で「平◯京」だよ。平安京ではないよ。"],
+   note:"道路が碁盤の目のように整えられていたよ。"},
+  {u:"h1", q:"戸籍にもとづいて、6歳以上のすべての人に口分田をあたえた制度を何という？",
+   a:"班田収授法", accept:["班田収授法","はんでんしゅうじゅのほう","班田収授","はんでんしゅうじゅ"],
+   hints:["死んだら土地を国に返すきまりだったよ。","「班田◯◯法」だよ。"],
+   note:"口分田をあたえられた人々は、租という税として稲を納めたよ。"},
+  {u:"h1", q:"743年に出された、新しく切り開いた土地の私有を、いつまでも認めた法律を何という？",
+   a:"墾田永年私財法", accept:["墾田永年私財法","こんでんえいねんしざいのほう","墾田永年","こんでんえいねん"],
+   hints:["「永年」は、いつまでもという意味だよ。","「墾田◯◯私財法」だよ。"],
+   note:"この法律で、貴族や寺社が私有地を広げ、のちの荘園につながっていったよ。"},
+  {u:"h1", q:"聖武天皇が、仏教の力で国を守ろうとして、大仏をつくらせた寺を何という？",
+   a:"東大寺", accept:["東大寺","とうだいじ"],
+   hints:["奈良にある寺で、宝物をおさめた正倉院があるよ。","漢字3文字で「◯大寺」だよ。"],
+   note:"聖武天皇は、国ごとに国分寺と国分尼寺も建てさせたよ。"},
+  {u:"h1", q:"794年に、桓武天皇が都を移した、京都の都を何という？",
+   a:"平安京", accept:["平安京","へいあんきょう"],
+   hints:["「鳴くよウグイス」の語呂あわせで有名だよ。","漢字3文字で「平◯京」だよ。平城京ではないよ。"],
+   note:"ここから、約400年続く平安時代が始まったよ。"},
+  {u:"h1", q:"藤原氏が、天皇が幼いときは摂政、大人になってからは関白となって、実権をにぎった政治を何という？",
+   a:"摂関政治", accept:["摂関政治","せっかんせいじ","摂関","せっかん"],
+   hints:["2つの役職の名前から1文字ずつとっているよ。","「◯◯政治」だよ。"],
+   note:"藤原道長と、その子の頼通のころに最も栄えたよ。"},
+  {u:"h1", q:"平安時代に、紫式部が、かな文字を使って書いた長い物語を何という？",
+   a:"源氏物語", accept:["源氏物語","げんじものがたり","源氏"],
+   hints:["光源氏という人物が主人公だよ。","「◯◯物語」だよ。"],
+   note:"清少納言の『枕草子』も、同じころに書かれた作品だよ。"},
+
+/* ===== 歴史②：中世（鎌倉・室町） ===== */
+  {u:"h2", q:"武士として初めて太政大臣になり、中国の宋との貿易を進めた人物はだれ？",
+   a:"平清盛", accept:["平清盛","たいらのきよもり","清盛","きよもり"],
+   hints:["兵庫の港を整えて、貿易に力を入れたよ。","平氏の中心人物で、名前は「◯◯もり」だよ。"],
+   note:"平氏は、のちに源氏との戦いにやぶれ、壇ノ浦でほろびたよ。"},
+  {u:"h2", q:"1192年に征夷大将軍に任命され、鎌倉に幕府を開いた人物はだれ？",
+   a:"源頼朝", accept:["源頼朝","みなもとのよりとも","頼朝","よりとも"],
+   hints:["弟の義経たちに平氏をたおさせたよ。","源氏の中心人物で、名前は「より◯◯」だよ。"],
+   note:"頼朝は、国ごとに守護、荘園などに地頭を置いたよ。"},
+  {u:"h2", q:"鎌倉幕府で、将軍が御家人の領地を守ったり、手がらに応じて新しい領地をあたえたりすることを何という？",
+   a:"御恩", accept:["御恩","ごおん","ご恩"], ng:["奉公","ほうこう"],
+   hints:["「恩」の字が入るよ。","ひらがな3文字で「ご◯◯」だよ。"],
+   note:"御恩と奉公による主従関係が、鎌倉幕府の土台だったんだ。"},
+  {u:"h2", q:"鎌倉幕府で、御家人が将軍のために戦ったり、京都や鎌倉の警備をしたりすることを何という？",
+   a:"奉公", accept:["奉公","ほうこう","方向"], ng:["御恩","ごおん"],
+   hints:["「いざ鎌倉」とかけつけることだよ。","ひらがな4文字で「ほう◯◯」だよ。"],
+   note:"将軍の御恩に対して、御家人は奉公でこたえたんだ。"},
+  {u:"h2", q:"鎌倉幕府で、将軍を助ける執権という役職を、代々受けついだ一族を何という？",
+   a:"北条氏", accept:["北条","ほうじょう"],
+   hints:["頼朝の妻、政子の実家だよ。","漢字2文字の名字＋「氏」、「北」の字が入るよ。"],
+   note:"執権が中心になって行った政治を、執権政治というよ。"},
+  {u:"h2", q:"1221年に、後鳥羽上皇が幕府をたおそうとして兵をあげ、敗れた戦いを何という？",
+   a:"承久の乱", accept:["承久の乱","じょうきゅうのらん","承久"],
+   hints:["北条政子が御家人たちに団結をよびかけたよ。","「◯◯の乱」、元号が入るよ。"],
+   note:"この後、幕府は京都に六波羅探題を置いて、朝廷を見はったよ。"},
+  {u:"h2", q:"1232年に、執権の北条泰時が定めた、武士のための最初の法律を何という？",
+   a:"御成敗式目", accept:["御成敗式目","ごせいばいしきもく","貞永式目","じょうえいしきもく","成敗式目"],
+   hints:["裁判の基準を、武士にわかりやすく示したものだよ。","最後は「式目」だよ。"],
+   note:"貞永式目ともいうよ。武家の法律の手本として、長く使われたよ。"},
+  {u:"h2", q:"13世紀の後半に、フビライ・ハンが率いる元の軍が、2度にわたって九州北部にせめてきたできごとを何という？",
+   a:"元寇", accept:["元寇","げんこう","蒙古襲来","もうこしゅうらい","原稿","元講"],
+   hints:["1度目を文永の役、2度目を弘安の役というよ。","ひらがな4文字で「げん◯◯」だよ。"],
+   note:"御家人はよく戦ったけれど、ほうびの領地は十分にもらえず、不満が高まったよ。"},
+  {u:"h2", q:"元がせめてきたとき、鎌倉幕府の執権だった人物はだれ？",
+   a:"北条時宗", accept:["北条時宗","ほうじょうときむね","時宗","ときむね"],
+   hints:["北条氏の一人だよ。","名前は「とき◯◯」だよ。"],
+   note:"時宗は、元の使いを追い返し、九州北部の守りを固めたよ。"},
+  {u:"h2", q:"1297年に、生活に苦しむ御家人を救うため、幕府が借金を帳消しにさせた法令を何という？",
+   a:"永仁の徳政令", accept:["永仁の徳政令","えいにんのとくせいれい","徳政令","とくせいれい"],
+   hints:["「よい政治」という意味の言葉が入っているよ。","最後は「◯◯令」だよ。"],
+   note:"かえって経済が混乱し、御家人の幕府への不満はおさまらなかったよ。"},
+  {u:"h2", q:"「南無阿弥陀仏」と念仏を唱えれば、だれでも救われると説いて、浄土宗を開いた僧はだれ？",
+   a:"法然", accept:["法然","ほうねん","豊年"],
+   hints:["弟子の親鸞は、浄土真宗を開いたよ。","ひらがな4文字で「ほう◯◯」だよ。"],
+   note:"鎌倉時代には、わかりやすく、行いやすい新しい仏教が広まったよ。"},
+  {u:"h2", q:"鎌倉幕府がほろんだあと、後醍醐天皇が始めた、天皇中心の政治を何という？",
+   a:"建武の新政", accept:["建武の新政","けんむのしんせい","建武"],
+   hints:["わずか2年ほどでくずれてしまったよ。","「◯◯の新政」、元号が入るよ。"],
+   note:"武士の不満が高まり、足利尊氏が兵をあげたことで終わったよ。"},
+  {u:"h2", q:"1338年に征夷大将軍となり、京都に幕府を開いた人物はだれ？",
+   a:"足利尊氏", accept:["足利尊氏","あしかがたかうじ","尊氏","たかうじ"],
+   hints:["後醍醐天皇と対立し、北朝の天皇を立てたよ。","足利氏で、名前は「たか◯◯」だよ。"],
+   note:"このあと、京都の北朝と吉野の南朝が争う南北朝時代になったよ。"},
+  {u:"h2", q:"室町幕府の3代将軍で、南北朝を1つにまとめ、京都の北山に金閣を建てた人物はだれ？",
+   a:"足利義満", accept:["足利義満","あしかがよしみつ","義満","よしみつ"],
+   hints:["中国の明との貿易を始めたよ。","足利氏で、名前は「よし◯◯」、「よしまさ」ではないよ。"],
+   note:"義満のころの文化を、北山文化というよ。"},
+  {u:"h2", q:"足利義満が中国の明と始めた、倭寇と区別するために正式な貿易船に証明書を持たせた貿易を何という？",
+   a:"勘合貿易", accept:["勘合貿易","かんごうぼうえき","勘合","かんごう","日明貿易","にちみんぼうえき"],
+   hints:["証明書の名前が、そのまま貿易の名前になっているよ。","「◯◯貿易」、ひらがなで「かん◯◯」だよ。"],
+   note:"日明貿易ともいうよ。銅銭などが大量に輸入されたよ。"},
+  {u:"h2", q:"1467年、将軍のあとつぎ問題などから京都で始まり、11年も続いた戦乱を何という？",
+   a:"応仁の乱", accept:["応仁の乱","おうにんのらん","応仁"],
+   hints:["8代将軍の足利義政のころに起こったよ。","「◯◯の乱」、元号が入るよ。"],
+   note:"この乱のあと、全国で戦いが続く戦国時代になったよ。"},
+  {u:"h2", q:"戦国時代に広がった、実力のある者が、身分が上の者をたおしてその地位をうばう風潮を何という？",
+   a:"下剋上", accept:["下剋上","げこくじょう","下克上"],
+   hints:["「下が上に剋つ」という意味の言葉だよ。","ひらがな5文字で「げこく◯◯」だよ。"],
+   note:"下剋上で力をのばした大名を、戦国大名というよ。"},
+  {u:"h2", q:"室町時代に、農民たちが団結して、借金の帳消しなどを求めて立ち上がった行動を何という？",
+   a:"土一揆", accept:["土一揆","つちいっき","徳政一揆","とくせいいっき","どいっき"], ng:["百姓","ひゃくしょう","山城","加賀"],
+   hints:["正長の年に、近江の馬借が始めたものが有名だよ。","「◯一揆」、漢字1文字が前につくよ。"],
+   note:"江戸時代の農民の一揆は、百姓一揆というよ。区別しよう。"},
+  {u:"h2", q:"8代将軍の足利義政が、京都の東山に建てた建物を何という？",
+   a:"銀閣", accept:["銀閣","ぎんかく","銀閣寺","慈照寺"],
+   hints:["金閣と並んで有名な建物だよ。","漢字2文字で「◯閣」、金ではないよ。"],
+   note:"義政のころの、落ち着いた文化を東山文化というよ。書院造も広まったよ。"},
+  {u:"h2", q:"室町時代に、観阿弥と世阿弥の親子が完成させた、面をつけて舞う芸能を何という？",
+   a:"能", accept:["能楽","のうがく","のう","能","脳","農"], ng:["狂言","きょうげん","芸能","げいのう"],
+   hints:["合間には、こっけいな劇の狂言が演じられたよ。","漢字1文字の芸能だよ。"],
+   note:"能は、足利義満の保護を受けて発展したよ。"},
+
+/* ===== 歴史③：近世（戦国・江戸） ===== */
+  {u:"h3", q:"1543年に、種子島に流れ着いたポルトガル人によって伝えられた武器は何？",
+   a:"鉄砲", accept:["鉄砲","てっぽう","火縄銃","ひなわじゅう"],
+   hints:["戦い方を大きく変えた武器だよ。","漢字2文字で「鉄◯」だよ。"],
+   note:"まもなく堺などで、たくさんつくられるようになったよ。"},
+  {u:"h3", q:"1549年に鹿児島に来て、日本にキリスト教を伝えた宣教師はだれ？",
+   a:"フランシスコ・ザビエル", accept:["ザビエル","ザビエール"],
+   hints:["イエズス会の宣教師だよ。","カタカナで「ザ」から始まるよ。"],
+   note:"その後、九州の大名の中には、キリスト教を信じるキリシタン大名も現れたよ。"},
+  {u:"h3", q:"織田信長が安土の城下町で、市場の税をなくし、座の特権をなくした政策を何という？",
+   a:"楽市・楽座", accept:["らくいちらくざ","楽市楽座","楽市","らくいち"],
+   hints:["だれでも自由に商売ができるようにしたよ。","「楽◯・楽◯」だよ。"],
+   note:"商工業を活発にして、城下町を栄えさせようとしたんだ。"},
+  {u:"h3", q:"1575年に、織田信長が鉄砲を有効に使って、武田氏の騎馬隊を破った戦いを何という？",
+   a:"長篠の戦い", accept:["長篠の戦い","ながしののたたかい","長篠","ながしの"],
+   hints:["今の愛知県で行われた戦いだよ。","「◯◯の戦い」、ひらがなで「なが◯◯」だよ。"],
+   note:"足軽の鉄砲隊が、戦いの勝敗を決めるようになったよ。"},
+  {u:"h3", q:"豊臣秀吉が、全国の田畑の広さや土地のよしあしを調べ、とれる米の量を石高で表した政策を何という？",
+   a:"太閤検地", accept:["太閤検地","たいこうけんち","検地","けんち"],
+   hints:["ものさしやますを統一して調べたよ。","「太閤◯◯」、土地を調べるという意味の言葉が入るよ。"],
+   note:"耕す農民を検地帳に記し、年貢を納める責任を負わせたよ。"},
+  {u:"h3", q:"豊臣秀吉が、一揆を防ぐため、農民から刀や鉄砲などの武器を取り上げた政策を何という？",
+   a:"刀狩", accept:["刀狩","かたながり","刀狩り"],
+   hints:["武器を「かり集める」政策だよ。","「◯狩」、武器の名前が入るよ。"],
+   note:"検地と刀狩で、武士と農民の身分がはっきり分かれたよ。これを兵農分離というよ。"},
+  {u:"h3", q:"1600年に、徳川家康が石田三成らをやぶった、「天下分け目の戦い」とよばれる戦いを何という？",
+   a:"関ヶ原の戦い", accept:["せきがはらのたたかい","関ヶ原","関ケ原","関が原","せきがはら"],
+   hints:["今の岐阜県で行われた戦いだよ。","「◯◯◯の戦い」、ひらがなで「せき◯◯◯」だよ。"],
+   note:"この戦いに勝った家康は、1603年に征夷大将軍になったよ。"},
+  {u:"h3", q:"1603年に征夷大将軍となり、江戸に幕府を開いた人物はだれ？",
+   a:"徳川家康", accept:["徳川家康","とくがわいえやす","家康","いえやす"],
+   hints:["関ヶ原の戦いに勝った人物だよ。","徳川氏で、名前は「いえ◯◯」だよ。"],
+   note:"江戸幕府は、約260年も続いたよ。"},
+  {u:"h3", q:"江戸幕府が、大名を取りしまるために定めたきまりを何という？",
+   a:"武家諸法度", accept:["武家諸法度","ぶけしょはっと"],
+   hints:["城を新しく築くことや、大名どうしの勝手な結婚を禁じたよ。","「武家◯◯◯」、漢字5文字だよ。"],
+   note:"きまりに背いた大名は、領地を取り上げられたりしたよ。"},
+  {u:"h3", q:"大名に、1年おきに江戸と自分の領地を行き来させた制度を何という？",
+   a:"参勤交代", accept:["参勤交代","さんきんこうたい","参勤","さんきん"],
+   hints:["3代将軍の徳川家光が、武家諸法度に加えたよ。","「◯◯交代」だよ。"],
+   note:"大名の妻や子は江戸に住まわされ、大名は大きな出費に苦しんだよ。"},
+  {u:"h3", q:"1637年に、キリスト教徒への迫害や重い年貢に苦しむ人々が、九州で起こした一揆を何という？",
+   a:"島原・天草一揆", accept:["しまばらあまくさいっき","島原天草一揆","島原","しまばら","天草","あまくさ"],
+   hints:["天草四郎という少年をかしらにして戦ったよ。","今の長崎県と熊本県の地名がつながった名前だよ。"],
+   note:"この一揆のあと、幕府はキリスト教の取りしまりをさらに強めたよ。"},
+  {u:"h3", q:"キリスト教を禁止し、貿易の相手をオランダと中国に限った、江戸幕府の外交の体制を何という？",
+   a:"鎖国", accept:["鎖国","さこく"],
+   hints:["国を「くさりで閉じる」という意味だよ。","ひらがな3文字で「さ◯◯」だよ。"],
+   note:"鎖国中も、朝鮮や琉球、アイヌの人々との交流は続いていたよ。"},
+  {u:"h3", q:"鎖国の間、オランダ人が住まわされた、長崎の港につくられた人工の島を何という？",
+   a:"出島", accept:["出島","でじま"],
+   hints:["おうぎのような形をした島だよ。","ひらがな3文字で「で◯◯」だよ。"],
+   note:"オランダからは、海外のようすを伝える報告書が幕府に出されたよ。"},
+  {u:"h3", q:"江戸幕府の8代将軍、徳川吉宗が行った政治の改革を何という？",
+   a:"享保の改革", accept:["享保の改革","きょうほうのかいかく","享保","きょうほう"],
+   hints:["目安箱を置いて、人々の意見を聞いたよ。","「◯◯の改革」、元号が入るよ。"],
+   note:"江戸時代の三大改革は、享保・寛政・天保の改革だよ。"},
+  {u:"h3", q:"徳川吉宗がつくらせた、裁判や刑罰の基準となる法律を何という？",
+   a:"公事方御定書", accept:["公事方御定書","くじかたおさだめがき","御定書","おさだめがき"],
+   hints:["享保の改革の中で定められたよ。","「公事方◯◯◯」、最後は「書」だよ。"],
+   note:"それまでの判決の例をもとに、公正な裁判をめざしたよ。"},
+  {u:"h3", q:"老中の松平定信が、ききんで荒れた農村を立て直そうとして行った改革を何という？",
+   a:"寛政の改革", accept:["寛政の改革","かんせいのかいかく","寛政","かんせい"],
+   hints:["ききんに備えて、米をたくわえさせたよ。","「◯◯の改革」、元号が入るよ。"],
+   note:"きびしすぎて、「元の濁りの田沼恋しき」という歌でからかわれたよ。"},
+  {u:"h3", q:"老中の水野忠邦が、ぜいたくを禁止したり、株仲間を解散させたりした改革を何という？",
+   a:"天保の改革", accept:["天保の改革","てんぽうのかいかく","天保","てんぽう"],
+   hints:["大塩平八郎の乱のあとに行われたよ。","「◯◯の改革」、元号が入るよ。"],
+   note:"きびしい政策に反発が強く、2年あまりで失敗に終わったよ。"},
+  {u:"h3", q:"杉田玄白らが、オランダ語の解剖書をほん訳して出版した本を何という？",
+   a:"解体新書", accept:["解体新書","かいたいしんしょ"],
+   hints:["人体のしくみを図で示した医学の本だよ。","「◯◯新書」だよ。"],
+   note:"これをきっかけに、オランダ語で西洋の学問を学ぶ蘭学が広まったよ。"},
+  {u:"h3", q:"全国を歩いて測量し、正確な日本地図をつくった人物はだれ？",
+   a:"伊能忠敬", accept:["伊能忠敬","いのうただたか","伊能","いのう"],
+   hints:["50歳をすぎてから、天文学や測量を学んだよ。","名字は「い◯◯」だよ。"],
+   note:"忠敬の死後、弟子たちが「大日本沿海輿地全図」を完成させたよ。"},
+  {u:"h3", q:"1853年に、4せきの軍艦を率いて浦賀に来航し、開国を求めたアメリカの使節はだれ？",
+   a:"ペリー", accept:["ペリー","ペルリ"],
+   hints:["黒船とよばれた軍艦で来たよ。","カタカナ3文字で「ペ」から始まるよ。"],
+   note:"翌年、ペリーは再び来航し、日米和親条約が結ばれたよ。"},
+
+/* ===== 歴史④：近代・現代（幕末〜） ===== */
+  {u:"h4", q:"1854年に結ばれ、下田と函館の2つの港を開くことになった条約を何という？",
+   a:"日米和親条約", accept:["日米和親条約","にちべいわしんじょうやく","和親条約","わしんじょうやく","日米和親"], ng:["修好","しゅうこう"],
+   hints:["ペリーが再び来航したときに結ばれたよ。","「日米◯◯条約」、なかよくするという意味の言葉が入るよ。"],
+   note:"この条約で、鎖国の体制が終わったよ。"},
+  {u:"h4", q:"1858年に結ばれた、日本に関税自主権がなく、領事裁判権を認めた不平等な条約を何という？",
+   a:"日米修好通商条約", accept:["日米修好通商条約","にちべいしゅうこうつうしょうじょうやく","修好通商条約","修好通商","しゅうこうつうしょう"],
+   hints:["大老の井伊直弼が結んだよ。","「日米修好◯◯条約」、貿易という意味の言葉が入るよ。"],
+   note:"この条約で、函館・神奈川・長崎・新潟・兵庫の5港が開かれたよ。"},
+  {u:"h4", q:"1867年に、15代将軍の徳川慶喜が、政権を朝廷に返したできごとを何という？",
+   a:"大政奉還", accept:["大政奉還","たいせいほうかん"],
+   hints:["約260年続いた江戸幕府が終わったよ。","「大政◯◯」、ひらがなで「たいせい◯◯◯◯」だよ。"],
+   note:"このあと、朝廷は王政復古の大号令を出し、天皇中心の政治にもどすことを宣言したよ。"},
+  {u:"h4", q:"1871年に、明治政府が藩を廃止して、府と県を置いた改革を何という？",
+   a:"廃藩置県", accept:["廃藩置県","はいはんちけん"],
+   hints:["中央から府知事や県令を送りこんだよ。","漢字4文字で、「藩」と「県」が入っているよ。"],
+   note:"これで、政府が全国を直接おさめるしくみができたよ。"},
+  {u:"h4", q:"明治政府が、土地の所有者に地価の3パーセントを現金で納めさせた税のしくみの改革を何という？",
+   a:"地租改正", accept:["地租改正","ちそかいせい","地租"],
+   hints:["地券を発行して、土地の持ち主をはっきりさせたよ。","「◯◯改正」、ひらがなで「ちそ」が入るよ。"],
+   note:"米のでき具合に関係なく、毎年同じ額が納められるので、国の収入が安定したよ。"},
+  {u:"h4", q:"産業をさかんにして国を豊かにし、強い軍隊をもとうとした、明治政府の目標を何という？",
+   a:"富国強兵", accept:["富国強兵","ふこくきょうへい"],
+   hints:["「国を富ませ、兵を強くする」という意味だよ。","漢字4文字で「富国◯◯」だよ。"],
+   note:"官営の富岡製糸場などをつくり、産業を育てる殖産興業も進めたよ。"},
+  {u:"h4", q:"板垣退助らが中心となって、国会を開くことなどを求めた運動を何という？",
+   a:"自由民権運動", accept:["自由民権運動","じゆうみんけんうんどう","自由民権","じゆうみんけん"],
+   hints:["民撰議院設立の建白書を出したことから始まったよ。","「◯◯民権運動」だよ。"],
+   note:"板垣退助は自由党、大隈重信は立憲改進党をつくったよ。"},
+  {u:"h4", q:"1889年に発布された、天皇が国を治める主権をもつと定めた憲法を何という？",
+   a:"大日本帝国憲法", accept:["大日本帝国憲法","だいにほんていこくけんぽう","だいにっぽんていこくけんぽう","帝国憲法","明治憲法","ていこくけんぽう"],
+   hints:["伊藤博文が、ドイツの憲法を参考に草案をつくったよ。","「大日本◯◯憲法」だよ。"],
+   note:"翌年には第1回の衆議院議員選挙が行われ、帝国議会が開かれたよ。"},
+  {u:"h4", q:"1894年に、朝鮮をめぐって、日本と清の間で起こった戦争を何という？",
+   a:"日清戦争", accept:["日清戦争","にっしんせんそう","日清"], ng:["日露","にちろ"],
+   hints:["下関条約で講和したよ。","「日◯戦争」、相手の国の名前が入るよ。"],
+   note:"日本は賠償金と台湾などを得たけれど、三国干渉で遼東半島を返したよ。"},
+  {u:"h4", q:"1904年に、満州や韓国をめぐって、日本とロシアの間で起こった戦争を何という？",
+   a:"日露戦争", accept:["日露戦争","にちろせんそう","日露"], ng:["日清","にっしん"],
+   hints:["ポーツマス条約で講和したよ。","「日◯戦争」、相手の国の名前が入るよ。"],
+   note:"与謝野晶子は、戦場の弟を思って「君死にたまふことなかれ」という詩を発表したよ。"},
+  {u:"h4", q:"1911年に、外務大臣の小村寿太郎が、交渉によって完全に回復させた権利を何という？",
+   a:"関税自主権", accept:["関税自主権","かんぜいじしゅけん","関税自主"],
+   hints:["輸入品にかける税を、自分の国で決める権利だよ。","「関税◯◯権」だよ。"],
+   note:"1894年には、陸奥宗光が領事裁判権の撤廃に成功していたよ。"},
+  {u:"h4", q:"1914年に、ヨーロッパで始まり、多くの国が加わった大きな戦争を何という？",
+   a:"第一次世界大戦", accept:["第一次世界大戦","だいいちじせかいたいせん","第1次世界大戦","第一次大戦","第1次大戦"], ng:["第二次","第2次","だいにじ"],
+   hints:["サラエボ事件がきっかけになったよ。","「第◯次世界大戦」、1回目の方だよ。"],
+   note:"日本も日英同盟を理由に参戦し、戦争中は好景気になったよ。"},
+  {u:"h4", q:"1925年に制定された、満25歳以上のすべての男子に選挙権をあたえた法律を何という？",
+   a:"普通選挙法", accept:["普通選挙法","ふつうせんきょほう","普通選挙","ふつうせんきょ"],
+   hints:["税金の額による制限がなくなったよ。","「◯◯選挙法」、ひらがなで「ふつう」が入るよ。"],
+   note:"同じ年に、社会運動を取りしまる治安維持法もつくられたよ。"},
+  {u:"h4", q:"1929年に、アメリカの株価の大暴落から始まり、世界中に広がった不景気を何という？",
+   a:"世界恐慌", accept:["世界恐慌","せかいきょうこう","恐慌","大恐慌"],
+   hints:["アメリカはニューディール政策で立ち直りをはかったよ。","「世界◯◯」、ひらがなで「きょうこう」が入るよ。"],
+   note:"イギリスやフランスは、植民地との関係を強めるブロック経済をとったよ。"},
+  {u:"h4", q:"1931年に、関東軍が南満州鉄道の線路を爆破したことをきっかけに始まったできごとを何という？",
+   a:"満州事変", accept:["満州事変","まんしゅうじへん","満州"],
+   hints:["翌年、満州国がつくられたよ。","「満州◯◯」、「戦争」ではない言葉だよ。"],
+   note:"国際連盟は満州国を認めず、日本は国際連盟を脱退したよ。"},
+  {u:"h4", q:"1932年5月15日に、海軍の青年将校らが首相官邸をおそい、犬養毅首相を暗殺した事件を何という？",
+   a:"五・一五事件", accept:["五一五","515","ごいちご","ごーいちごー"], ng:["二二六","226","にーにーろく","ににろく"],
+   hints:["日付がそのまま名前になっているよ。","「◯・◯◯事件」だよ。"],
+   note:"この事件で、政党内閣の時代が終わったよ。1936年には二・二六事件も起きたよ。"},
+  {u:"h4", q:"第二次世界大戦のあと、政府が地主の農地を買い上げ、小作人に安く売りわたした改革を何という？",
+   a:"農地改革", accept:["農地改革","のうちかいかく","農地"],
+   hints:["多くの自作農が生まれたよ。","「◯◯改革」、田畑のことを表す言葉が入るよ。"],
+   note:"同じころ、大きな企業グループを解体する財閥解体も行われたよ。"},
+  {u:"h4", q:"1951年に、日本が48か国と結び、翌年に独立を回復した条約を何という？",
+   a:"サンフランシスコ平和条約", accept:["サンフランシスコ","講和条約","こうわじょうやく"],
+   hints:["アメリカの都市で結ばれた条約だよ。","都市の名前＋「平和条約」だよ。"],
+   note:"同じ日に、日米安全保障条約も結ばれたよ。"},
+  {u:"h4", q:"1950年代の後半から1973年ごろまで続いた、日本の経済の急速な成長を何という？",
+   a:"高度経済成長", accept:["高度経済成長","こうどけいざいせいちょう","高度成長","こうどせいちょう"],
+   hints:["1973年の石油危機で終わったよ。","「◯◯経済成長」だよ。"],
+   note:"くらしが豊かになる一方で、水俣病などの公害が大きな問題になったよ。"},
+  {u:"h4", q:"1972年に、アメリカから日本に返還された県はどこ？",
+   a:"沖縄県", accept:["沖縄","おきなわ"],
+   hints:["今も多くのアメリカ軍の基地が残っているよ。","日本の南西のはしにある県だよ。"],
+   note:"同じ1972年には、中国との国交を正常化する日中共同声明も出されたよ。"},
+/* ===== 公民①：現代社会と人権・日本国憲法 ===== */
+  {u:"c1", q:"人やもの、お金、情報が国境をこえて行き来し、世界の結びつきが強まることを何という？",
+   a:"グローバル化", accept:["グローバル"],
+   hints:["「地球規模」という意味の英語からきた言葉だよ。","カタカナ5文字＋「化」だよ。"],
+   note:"国どうしで得意なものをつくって交換する、国際分業も進んでいるよ。"},
+  {u:"c1", q:"情報を正しく読みとり、うまく活用する力を何という？",
+   a:"情報リテラシー", accept:["リテラシー"],
+   hints:["インターネットのうわさをそのまま信じない力も、これにふくまれるよ。","「情報◯◯◯◯◯」、カタカナが入るよ。"],
+   note:"情報を正しく使う態度や考え方は、情報モラルというよ。"},
+  {u:"c1", q:"障がいのある人やお年寄りが生活するうえで、さまたげになるものを取りのぞくことを何という？",
+   a:"バリアフリー", accept:["バリアフリー"], ng:["ユニバーサル"],
+   hints:["駅のエレベーターや、段差をなくしたスロープなどがその例だよ。","「バリア」は「かべ」という意味だよ。"],
+   note:"はじめから、だれもが使いやすいようにつくるデザインは、ユニバーサルデザインというよ。"},
+  {u:"c1", q:"1946年11月3日に公布され、翌年5月3日に施行された、今の日本の憲法を何という？",
+   a:"日本国憲法", accept:["にほんこくけんぽう","日本国憲法","にっぽんこくけんぽう"], ng:["帝国","ていこく"],
+   hints:["11月3日は文化の日、5月3日は憲法記念日になっているよ。","「◯◯国憲法」だよ。"],
+   note:"憲法は国の最高法規で、これに反する法律は無効になるよ。"},
+  {u:"c1", q:"日本国憲法の3つの基本原理は、国民主権、平和主義と、あとひとつは何？",
+   a:"基本的人権の尊重", accept:["基本的人権","きほんてきじんけん"],
+   hints:["だれもが生まれながらにもっている権利を大切にすることだよ。","「◯◯◯人権の尊重」だよ。"],
+   note:"国民主権・平和主義・基本的人権の尊重の3つを、セットで覚えよう。"},
+  {u:"c1", q:"日本国憲法で、天皇は日本国と日本国民統合の何であると定められている？",
+   a:"象徴", accept:["象徴","しょうちょう","小腸"],
+   hints:["政治についての権限はもたない、という立場だよ。","ひらがなで「しょう◯◯◯」だよ。"],
+   note:"天皇は、内閣の助言と承認によって、国事行為だけを行うよ。"},
+  {u:"c1", q:"天皇が、内閣の助言と承認によって行う、形だけの儀礼的な仕事を何という？",
+   a:"国事行為", accept:["国事行為","こくじこうい","国事"],
+   hints:["内閣総理大臣の任命や、法律の公布などがあるよ。","「◯◯行為」、「国の事がら」という意味の言葉が入るよ。"],
+   note:"内閣総理大臣を指名するのは国会、任命するのが天皇だよ。"},
+  {u:"c1", q:"憲法を改正するとき、国会の発議のあとに行われる、国民による投票を何という？",
+   a:"国民投票", accept:["国民投票","こくみんとうひょう"],
+   hints:["有効な投票の過半数が賛成すれば、改正が決まるよ。","「◯◯投票」だよ。"],
+   note:"国会の発議には、衆議院と参議院それぞれの総議員の3分の2以上の賛成が必要だよ。"},
+  {u:"c1", q:"核兵器を「持たず、つくらず、持ちこませず」という、日本の方針を何という？",
+   a:"非核三原則", accept:["非核三原則","ひかくさんげんそく","非核3原則","非核"],
+   hints:["唯一の被爆国としての方針だよ。","「非核◯原則」、数字が入るよ。"],
+   note:"日本国憲法の第9条では、戦争を放棄し、戦力を持たないことを定めているよ。"},
+  {u:"c1", q:"すべての人が、性別や人種などで差別されず、等しくあつかわれる権利を何という？",
+   a:"平等権", accept:["平等権","びょうどうけん","平等"],
+   hints:["「法の下の◯◯」と憲法に書かれているよ。","漢字3文字で「◯◯権」だよ。"],
+   note:"男女の差別をなくすため、男女雇用機会均等法などがつくられたよ。"},
+  {u:"c1", q:"自由権のうち、思想や良心、信教、表現の自由などをまとめて何という？",
+   a:"精神の自由", accept:["精神の自由","せいしんのじゆう","精神活動の自由","精神"],
+   hints:["「心」の自由のことだよ。","「◯◯の自由」だよ。ほかに身体の自由、経済活動の自由があるよ。"],
+   note:"自由権は、精神の自由・身体の自由・経済活動の自由の3つに分けられるよ。"},
+  {u:"c1", q:"社会権のうち、健康で文化的な最低限度の生活を送る権利を何という？",
+   a:"生存権", accept:["生存権","せいぞんけん"],
+   hints:["憲法第25条に定められているよ。","漢字3文字で「◯◯権」だよ。"],
+   note:"生存権を守るため、生活に困っている人に生活保護が行われているよ。"},
+  {u:"c1", q:"労働者が、労働組合をつくったり、加入したりする権利を何という？",
+   a:"団結権", accept:["団結権","だんけつけん"],
+   hints:["労働三権のひとつだよ。","漢字3文字で「◯◯権」、力を合わせるという意味の言葉が入るよ。"],
+   note:"労働三権は、団結権・団体交渉権・団体行動権だよ。"},
+  {u:"c1", q:"選挙で投票したり、立候補したりして、政治に参加する権利を何という？",
+   a:"参政権", accept:["参政権","さんせいけん"],
+   hints:["日本では18歳以上の人が選挙で投票できるよ。","漢字3文字で「◯◯権」、政治に「参加」する権利だよ。"],
+   note:"憲法改正の国民投票や、最高裁判所裁判官の国民審査も、参政権にふくまれるよ。"},
+  {u:"c1", q:"新しい人権のひとつで、日当たりなど、住みやすい環境を求める権利を何という？",
+   a:"環境権", accept:["環境権","かんきょうけん"],
+   hints:["日照権もこれにふくまれるよ。","漢字3文字で「◯◯権」だよ。"],
+   note:"大きな開発をする前に環境への影響を調べる、環境アセスメントも行われているよ。"},
+  {u:"c1", q:"新しい人権のひとつで、自分の私生活や個人の情報を、勝手に公開されない権利を何という？",
+   a:"プライバシーの権利", accept:["プライバシー"],
+   hints:["個人情報保護法は、この権利を守るための法律だよ。","カタカナで「プラ」から始まるよ。"],
+   note:"インターネットに他人の写真や住所をのせると、この権利をおかすことになるよ。"},
+  {u:"c1", q:"新しい人権のひとつで、国や地方公共団体がもっている情報を手に入れる権利を何という？",
+   a:"知る権利", accept:["知る権利","しるけんり","知る"],
+   hints:["情報公開制度は、この権利を守るためのしくみだよ。","「◯◯権利」、ひらがな2文字が入るよ。"],
+   note:"政治について正しく判断するためには、情報を知ることが大切なんだ。"},
+  {u:"c1", q:"医師から治療について十分な説明を受けたうえで、患者が治療方法を選んだり同意したりすることを何という？",
+   a:"インフォームド・コンセント", accept:["インフォームドコンセント","インフォームド"],
+   hints:["自己決定権を大切にする考え方だよ。","カタカナで「インフォー◯◯」から始まるよ。"],
+   note:"臓器提供の意思を示すカードも、自己決定権の考え方にもとづいているよ。"},
+  {u:"c1", q:"人権が、社会全体の利益のために制限されることがある。この社会全体の利益のことを、憲法では何という？",
+   a:"公共の福祉", accept:["公共の福祉","こうきょうのふくし","福祉"],
+   hints:["他人の人権をおかしてはいけない、という考え方だよ。","「公共の◯◯」だよ。"],
+   note:"たとえば、他人の名誉を傷つける表現は、表現の自由でも認められないよ。"},
+  {u:"c1", q:"子どもが成長するために必要な、教育を受ける権利や意見を表す権利などを定めた条約を何という？",
+   a:"子どもの権利条約", accept:["子どもの権利条約","こどものけんりじょうやく","子供の権利条約","児童の権利条約","子どもの権利","子供の権利","こどものけんり"],
+   hints:["1989年に国連で採択されたよ。","「◯◯◯の権利条約」だよ。"],
+   note:"日本も1994年にこの条約を結んでいるよ。"},
+
+/* ===== 公民②：政治のしくみ ===== */
+  {u:"c2", q:"国会が、衆議院と参議院の2つの議院でできているしくみを何という？",
+   a:"二院制", accept:["二院制","にいんせい","両院制","2院制"],
+   hints:["慎重に話し合うためのしくみだよ。","漢字3文字で「◯院制」、数字が入るよ。"],
+   note:"二院制は、両院制ともいうよ。"},
+  {u:"c2", q:"議員の任期が4年で、とちゅうで解散することがある議院はどちら？",
+   a:"衆議院", accept:["衆議院","しゅうぎいん"], ng:["参議院","さんぎいん"],
+   hints:["定数が多く、内閣不信任の決議ができる議院だよ。","「◯議院」、ひらがなで「しゅう」から始まるよ。"],
+   note:"参議院は任期6年で、3年ごとに半数ずつ選挙をし、解散はないよ。"},
+  {u:"c2", q:"議員の任期が6年で、3年ごとに半数を選び直し、解散がない議院はどちら？",
+   a:"参議院", accept:["参議院","さんぎいん"], ng:["衆議院","しゅうぎいん"],
+   hints:["衆議院より立候補できる年齢が高く、30歳以上だよ。","「◯議院」、ひらがなで「さん」から始まるよ。"],
+   note:"衆議院は任期4年で、解散があるよ。"},
+  {u:"c2", q:"予算の議決などで、衆議院の議決が参議院より重く扱われることを何という？",
+   a:"衆議院の優越", accept:["衆議院の優越","しゅうぎいんのゆうえつ","優越","ゆうえつ"],
+   hints:["衆議院は任期が短く解散もあるので、国民の意見を反映しやすいと考えられているよ。","「衆議院の◯◯」、すぐれているという意味の言葉だよ。"],
+   note:"予算の先議、内閣不信任の決議は、衆議院だけに認められているよ。"},
+  {u:"c2", q:"毎年1回、1月に召集され、主に次の年度の予算を話し合う国会を何という？",
+   a:"常会", accept:["常会","じょうかい","通常国会","つうじょうこっかい"], ng:["臨時","特別"],
+   hints:["会期は150日間だよ。","「通常国会」ともいうよ。漢字2文字では？"],
+   note:"ほかに、臨時会（臨時国会）、特別会（特別国会）などがあるよ。"},
+  {u:"c2", q:"内閣が国会の信任にもとづいて成り立ち、国会に対して連帯して責任を負うしくみを何という？",
+   a:"議院内閣制", accept:["議院内閣制","ぎいんないかくせい","議院内閣"],
+   hints:["イギリスで生まれたしくみだよ。","「◯◯内閣制」だよ。"],
+   note:"衆議院が内閣不信任を決議したら、内閣は10日以内に衆議院を解散するか、総辞職するよ。"},
+  {u:"c2", q:"国会議員の中から国会が指名する、内閣の長を何という？",
+   a:"内閣総理大臣", accept:["内閣総理大臣","ないかくそうりだいじん","総理大臣","そうりだいじん","総理","首相","しゅしょう"],
+   hints:["首相ともよばれるよ。","「内閣◯◯大臣」だよ。"],
+   note:"国務大臣の過半数は、国会議員の中から選ばなければならないよ。"},
+  {u:"c2", q:"国の権力を、立法・行政・司法の3つに分けて、おたがいにおさえ合うようにするしくみを何という？",
+   a:"三権分立", accept:["三権分立","さんけんぶんりつ","権力分立","3権分立"],
+   hints:["権力が1か所に集まって、勝手に使われることを防ぐよ。","漢字4文字で「◯権分立」、数字が入るよ。"],
+   note:"立法は国会、行政は内閣、司法は裁判所が受けもっているよ。"},
+  {u:"c2", q:"著書『法の精神』で、三権分立を説いたフランスの思想家はだれ？",
+   a:"モンテスキュー", accept:["モンテスキュー","モンテスキュ"],
+   hints:["ルソーやロックと同じく、市民革命に影響をあたえた人物だよ。","カタカナで「モン」から始まるよ。"],
+   note:"『社会契約論』で人民主権を説いたのはルソーだよ。"},
+  {u:"c2", q:"法律などが憲法に違反していないかを、裁判所が判断する権限を何という？",
+   a:"違憲審査権", accept:["違憲審査権","いけんしんさけん","違憲立法審査権","違憲審査","いけんしんさ"],
+   hints:["すべての裁判所がもっている権限だよ。","「◯◯審査権」、「憲法に違う」という意味の言葉が入るよ。"],
+   note:"最終的な決定権をもつ最高裁判所は、「憲法の番人」とよばれているよ。"},
+  {u:"c2", q:"同じ事件について、原則として3回まで裁判を受けられるしくみを何という？",
+   a:"三審制", accept:["三審制","さんしんせい","3審制"],
+   hints:["裁判のまちがいを防ぎ、人権を守るためのしくみだよ。","漢字3文字で「◯審制」、数字が入るよ。"],
+   note:"第一審の判決に不服で上の裁判所にうったえることを控訴、さらにうったえることを上告というよ。"},
+  {u:"c2", q:"お金の貸し借りなど、個人や会社の間の争いを解決するための裁判を何という？",
+   a:"民事裁判", accept:["民事裁判","みんじさいばん","民事"], ng:["刑事","けいじ"],
+   hints:["うったえた人を原告、うったえられた人を被告というよ。","「◯◯裁判」、ひらがなで「みんじ」だよ。"],
+   note:"罪を犯した疑いのある人を裁くのは、刑事裁判だよ。"},
+  {u:"c2", q:"国民の中から選ばれた人が、裁判官といっしょに重大な刑事裁判に参加する制度を何という？",
+   a:"裁判員制度", accept:["裁判員制度","さいばんいんせいど","裁判員","さいばんいん"],
+   hints:["2009年から始まったよ。","「◯◯◯制度」、裁判官ではないよ。"],
+   note:"裁判員は、有罪か無罪か、有罪ならどんな刑にするかを、裁判官と話し合って決めるよ。"},
+  {u:"c2", q:"1つの選挙区から1人の代表を選ぶ選挙のしくみを何という？",
+   a:"小選挙区制", accept:["小選挙区制","しょうせんきょくせい","小選挙区","しょうせんきょく"],
+   hints:["死票が多くなりやすいしくみだよ。","「◯選挙区制」、大きさを表す漢字1文字が入るよ。"],
+   note:"衆議院の選挙は、小選挙区制と比例代表制を組み合わせて行われているよ。"},
+  {u:"c2", q:"政党の得票数に応じて、それぞれの政党に議席を配分する選挙のしくみを何という？",
+   a:"比例代表制", accept:["比例代表制","ひれいだいひょうせい","比例代表","ひれいだいひょう","比例"],
+   hints:["少ない票の政党でも、議席を得やすいしくみだよ。","「◯◯代表制」、数学でも使う言葉だよ。"],
+   note:"小さな政党が多くなり、政治が不安定になりやすいという面もあるよ。"},
+  {u:"c2", q:"内閣をつくり、政権を担当する政党を何という？",
+   a:"与党", accept:["与党","よとう"], ng:["野党","やとう"],
+   hints:["それ以外の政党は野党というよ。","ひらがな3文字で「よ◯◯」だよ。"],
+   note:"いくつかの政党が協力してつくる内閣を、連立政権（連立内閣）というよ。"},
+  {u:"c2", q:"「地方自治は◯◯の学校である」といわれる。◯◯に入る言葉は何？",
+   a:"民主主義", accept:["民主主義","みんしゅしゅぎ","民主"],
+   hints:["住民が身近な問題の解決に参加することで、政治のあり方を学べるという意味だよ。","漢字4文字で「民主◯◯」だよ。"],
+   note:"イギリスの政治学者ブライスの言葉だよ。"},
+  {u:"c2", q:"地方議会が、法律の範囲内で定める、その地方公共団体だけのきまりを何という？",
+   a:"条例", accept:["条例","じょうれい","条令"],
+   hints:["住民が制定を請求することもできるよ。","ひらがな4文字で「じょう◯◯」だよ。"],
+   note:"条例の制定や改廃の請求には、有権者の50分の1以上の署名が必要だよ。"},
+  {u:"c2", q:"住民が一定の数の署名を集めて、条例の制定や首長の解職などを求めることができる権利を何という？",
+   a:"直接請求権", accept:["直接請求権","ちょくせつせいきゅうけん","直接請求","ちょくせつせいきゅう"],
+   hints:["首長や議員の解職請求は、リコールともいうよ。","「直接◯◯権」だよ。"],
+   note:"地方自治では、住民が直接政治に参加できるしくみが国より多く取り入れられているよ。"},
+  {u:"c2", q:"地方公共団体の間の財政の格差をおさえるため、国から配分されるお金を何という？",
+   a:"地方交付税交付金", accept:["地方交付税","ちほうこうふぜい","交付税","こうふぜい"], ng:["補助金","支出金","ししゅつきん"],
+   hints:["使いみちは自由に決められるよ。","「地方◯◯税交付金」だよ。"],
+   note:"使いみちが決められているのは、国庫支出金だよ。"},
+
+/* ===== 公民③：経済のしくみ ===== */
+  {u:"c3", q:"商品を売る人と買う人が、おたがいに合意することで成り立つ約束を何という？",
+   a:"契約", accept:["契約","けいやく"],
+   hints:["コンビニでジュースを買うことも、これにあたるよ。","ひらがな4文字で「けい◯◯」だよ。"],
+   note:"いったん成立した契約は、原則として一方的に取り消せないよ。"},
+  {u:"c3", q:"訪問販売などで商品を買ったとき、一定の期間内なら、無条件で契約を取り消せる制度を何という？",
+   a:"クーリング・オフ", accept:["クーリングオフ","クーリング"],
+   hints:["「頭を冷やす」という意味の英語からきているよ。","カタカナで「クー」から始まるよ。"],
+   note:"訪問販売なら、契約書を受けとってから8日以内に手続きできるよ。"},
+  {u:"c3", q:"製品の欠陥で消費者が被害を受けたとき、企業に過失がなくても損害賠償の責任を負わせる法律を何という？",
+   a:"製造物責任法", accept:["製造物責任法","せいぞうぶつせきにんほう","製造物責任","pl法","ピーエル法","ピーエルほう"],
+   hints:["アルファベットの略称で、PL法ともいうよ。","「製造物◯◯法」だよ。"],
+   note:"消費者の権利を守る法律には、ほかに消費者契約法などがあるよ。"},
+  {u:"c3", q:"商品が、生産者から卸売業者や小売業者を通って、消費者に届くまでの流れを何という？",
+   a:"流通", accept:["流通","りゅうつう"],
+   hints:["商業や運送業が大きな役割をはたしているよ。","ひらがな4文字で「りゅう◯◯」だよ。"],
+   note:"大きなスーパーなどは、生産者から直接仕入れて、流通の合理化を進めているよ。"},
+  {u:"c3", q:"株式を発行して、多くの人から資金を集めてつくられる会社を何という？",
+   a:"株式会社", accept:["株式会社","かぶしきがいしゃ","かぶしきかいしゃ"],
+   hints:["株式を買って出資した人を株主というよ。","「◯◯会社」だよ。"],
+   note:"株主は、会社の利益の一部を配当として受けとれるよ。"},
+  {u:"c3", q:"株主が、株式会社の利益の一部を、持っている株式の数に応じて受けとるお金を何という？",
+   a:"配当", accept:["配当","はいとう","配当金"],
+   hints:["会社のもうけが「配られる」よ。","ひらがな4文字で「はい◯◯」だよ。"],
+   note:"株主は、株主総会に出席して、会社の方針の決定にも参加できるよ。"},
+  {u:"c3", q:"1日8時間、1週40時間以内など、労働条件の最低限の基準を定めた法律を何という？",
+   a:"労働基準法", accept:["労働基準法","ろうどうきじゅんほう","労働基準"],
+   hints:["労働三法のひとつだよ。","「労働◯◯法」だよ。"],
+   note:"労働三法は、労働基準法・労働組合法・労働関係調整法だよ。"},
+  {u:"c3", q:"市場で、買いたい量（需要量）と売りたい量（供給量）が一致したときの価格を何という？",
+   a:"均衡価格", accept:["均衡価格","きんこうかかく","均衡"],
+   hints:["グラフでは、需要曲線と供給曲線が交わる点だよ。","「◯◯価格」、つり合うという意味の言葉が入るよ。"],
+   note:"需要量が供給量より多いと価格は上がり、少ないと下がるよ。"},
+  {u:"c3", q:"ある商品の市場を、1つの企業が独り占めしている状態を何という？",
+   a:"独占", accept:["独占","どくせん"], ng:["寡占","かせん"],
+   hints:["競争がなくなって、価格が高いままになりやすいよ。","ひらがな4文字で「どく◯◯」だよ。"],
+   note:"少ない数の企業が市場を支配している状態は、寡占というよ。"},
+  {u:"c3", q:"独占禁止法にもとづいて、企業の間の公正な競争を守る仕事をしている国の機関を何という？",
+   a:"公正取引委員会", accept:["公正取引委員会","こうせいとりひきいいんかい","公正取引","こうせいとりひき","公取委"],
+   hints:["「公正な取引」を見守る機関だよ。","「公正取引◯◯◯」だよ。"],
+   note:"企業どうしが話し合って価格を決めるカルテルなどを取りしまっているよ。"},
+  {u:"c3", q:"電気・ガス・水道の料金など、国や地方公共団体が決めたり認めたりする料金を何という？",
+   a:"公共料金", accept:["公共料金","こうきょうりょうきん"],
+   hints:["国民のくらしに大きな影響があるので、自由には決められないよ。","「◯◯料金」だよ。"],
+   note:"鉄道やバスの運賃、郵便料金なども公共料金だよ。"},
+  {u:"c3", q:"物価が上がり続け、お金の価値が下がっていく現象を何という？",
+   a:"インフレーション", accept:["インフレ"], ng:["デフレ"],
+   hints:["好景気のときに起こりやすいよ。","カタカナで「イン」から始まるよ。"],
+   note:"反対に、物価が下がり続ける現象はデフレーション（デフレ）というよ。"},
+  {u:"c3", q:"日本の中央銀行を何という？",
+   a:"日本銀行", accept:["日本銀行","にほんぎんこう","にっぽんぎんこう","日銀","にちぎん"],
+   hints:["紙幣を発行している銀行だよ。","略して「◯銀」とよばれるよ。"],
+   note:"日本銀行は、発券銀行・政府の銀行・銀行の銀行という3つの役割をもっているよ。"},
+  {u:"c3", q:"日本銀行は、一般の銀行にお金を貸したり、預金を受け入れたりする。このことから何とよばれる？",
+   a:"銀行の銀行", accept:["銀行の銀行","ぎんこうのぎんこう"],
+   hints:["ほかに「政府の銀行」「発券銀行」ともよばれるよ。","同じ言葉が2回出てくるよ。"],
+   note:"日本銀行は、個人や一般の会社とは取引をしないよ。"},
+  {u:"c3", q:"日本銀行が、景気や物価を安定させるために、世の中に出回るお金の量を調整することを何という？",
+   a:"金融政策", accept:["金融政策","きんゆうせいさく"], ng:["財政"],
+   hints:["国債などを売り買いして、お金の量を調整するよ。","「◯◯政策」、お金の貸し借りを表す言葉が入るよ。"],
+   note:"政府が税金や公共事業で景気を調整するのは、財政政策というよ。"},
+  {u:"c3", q:"国や地方公共団体が、税金などでお金を集めて、公共のサービスを行う経済活動を何という？",
+   a:"財政", accept:["財政","ざいせい"],
+   hints:["国のお金の1年間の計画を、予算というよ。","ひらがな4文字で「ざい◯◯」だよ。"],
+   note:"国の歳出でいちばん多いのは、社会保障関係費だよ。"},
+  {u:"c3", q:"所得税のように、税金を納める人と、実際に負担する人が同じ税を何という？",
+   a:"直接税", accept:["直接税","ちょくせつぜい"], ng:["間接","かんせつ"],
+   hints:["消費税は、これとは逆のしくみの税だよ。","「◯◯税」、ひらがなで「ちょくせつ」が入るよ。"],
+   note:"消費税のように、納める人と負担する人がちがう税は、間接税というよ。"},
+  {u:"c3", q:"所得が多い人ほど、高い税率がかけられるしくみを何という？",
+   a:"累進課税", accept:["累進課税","るいしんかぜい","累進"],
+   hints:["所得の差を小さくする働きがあるよ。","「◯◯課税」、ひらがなで「るいしん」が入るよ。"],
+   note:"消費税は所得に関係なく同じ税率なので、所得が少ない人ほど負担が重く感じられる「逆進性」があるよ。"},
+  {u:"c3", q:"日本の社会保障制度のうち、加入者が保険料を納め、病気や高齢のときなどに給付を受けるしくみを何という？",
+   a:"社会保険", accept:["社会保険","しゃかいほけん"],
+   hints:["医療保険や年金保険、介護保険などがあるよ。","「社会◯◯」、ひらがなで「ほけん」が入るよ。"],
+   note:"社会保障の4つの柱は、社会保険・公的扶助・社会福祉・公衆衛生だよ。"},
+  {u:"c3", q:"1ドル＝100円が1ドル＝80円になるように、外国の通貨に対して円の価値が高くなることを何という？",
+   a:"円高", accept:["円高","えんだか"], ng:["円安","えんやす"],
+   hints:["輸入する会社には有利、輸出する会社には不利になるよ。","「円◯」、漢字2文字だよ。"],
+   note:"反対に、円の価値が低くなることを円安というよ。"},
+
+/* ===== 公民④：国際社会と地球の課題 ===== */
+  {u:"c4", q:"国家が成り立つための3つの要素は、領域・国民と、あとひとつは何？",
+   a:"主権", accept:["主権","しゅけん"],
+   hints:["ほかの国から支配されたり、口出しされたりしない権利だよ。","漢字2文字で「◯権」だよ。"],
+   note:"主権をもつ国家は、おたがいに対等な立場で関係を結んでいるよ。"},
+  {u:"c4", q:"1945年に、世界の平和と安全を守るために設立された国際機関を何という？",
+   a:"国際連合", accept:["国際連合","こくさいれんごう","国連","こくれん"], ng:["連盟"],
+   hints:["本部はアメリカのニューヨークにあるよ。","「国際◯◯」、第一次世界大戦のあとにできたのは「連盟」の方だよ。"],
+   note:"日本は1956年に国際連合に加盟したよ。"},
+  {u:"c4", q:"国際連合で、世界の平和と安全を守ることに主な責任をもつ機関を何という？",
+   a:"安全保障理事会", accept:["安全保障理事会","あんぜんほしょうりじかい","安保理","あんぽり","安全保障理事"],
+   hints:["5つの常任理事国と、10の非常任理事国でつくられているよ。","略して「安保理」とよぶよ。"],
+   note:"常任理事国は、アメリカ・ロシア・イギリス・フランス・中国の5か国だよ。"},
+  {u:"c4", q:"安全保障理事会の常任理事国がもつ、1か国でも反対すると重要なことを決定できない権利を何という？",
+   a:"拒否権", accept:["拒否権","きょひけん","拒否"],
+   hints:["大国一致の原則にもとづく権利だよ。","「◯◯権」、ことわるという意味の言葉が入るよ。"],
+   note:"拒否権のために、安全保障理事会が動けないこともあるよ。"},
+  {u:"c4", q:"国際連合が、紛争が起きた地域で停戦の監視などを行う活動を、アルファベットの略称で何という？",
+   a:"PKO", accept:["pko","ピーケーオー","平和維持活動"],
+   hints:["日本語では「平和維持活動」というよ。","アルファベット3文字で、「P」から始まるよ。"],
+   note:"日本の自衛隊も、カンボジアや南スーダンなどでPKOに参加してきたよ。"},
+  {u:"c4", q:"世界遺産の登録などを行っている、国連教育科学文化機関をカタカナで何という？",
+   a:"ユネスコ", accept:["ユネスコ","unesco"], ng:["ユニセフ"],
+   hints:["教育や科学、文化を通じて平和をめざす機関だよ。","カタカナで「ユ」から始まるよ。ユニセフではないよ。"],
+   note:"子どもたちを支援する国連児童基金は、ユニセフというよ。"},
+  {u:"c4", q:"先進国の政府が、発展途上国の発展のために行う資金や技術の援助を、アルファベットの略称で何という？",
+   a:"ODA", accept:["oda","オーディーエー","政府開発援助"],
+   hints:["日本語では「政府開発援助」というよ。","アルファベット3文字で、「O」から始まるよ。"],
+   note:"日本は、青年海外協力隊を送るなど、技術協力にも力を入れているよ。"},
+  {u:"c4", q:"北半球に多い先進国と、南半球に多い発展途上国との間の経済的な格差の問題を何という？",
+   a:"南北問題", accept:["南北問題","なんぼくもんだい","南北"], ng:["南南","なんなん"],
+   hints:["地球上の位置が、名前の由来になっているよ。","「◯◯問題」、方角が2つ入るよ。"],
+   note:"発展途上国の間での格差の問題は、南南問題というよ。"},
+  {u:"c4", q:"2015年に国連で採択された、2030年までに達成をめざす17の目標を、アルファベットの略称で何という？",
+   a:"SDGs", accept:["sdgs","エスディージーズ","sdg","持続可能な開発目標"],
+   hints:["日本語では「持続可能な開発目標」というよ。","アルファベットで「S」から始まるよ。"],
+   note:"「だれ一人取り残さない」ことを理念にしているよ。"},
+  {u:"c4", q:"二酸化炭素などの温室効果ガスが増えて、地球の平均気温が上がっていく問題を何という？",
+   a:"地球温暖化", accept:["地球温暖化","ちきゅうおんだんか","温暖化","おんだんか"],
+   hints:["海面の上昇や、異常気象の原因になるといわれているよ。","「地球◯◯化」だよ。"],
+   note:"温暖化を防ぐため、再生可能エネルギーの利用が進められているよ。"},
+  {u:"c4", q:"2015年に採択された、すべての国が温室効果ガスの削減に取り組むことを決めた協定を何という？",
+   a:"パリ協定", accept:["パリ協定","パリきょうてい","パリ"], ng:["京都"],
+   hints:["フランスの首都の名前がついているよ。","「◯◯協定」、カタカナ2文字の都市の名前だよ。"],
+   note:"1997年の京都議定書では、先進国だけに削減が義務づけられていたよ。"},
+  {u:"c4", q:"石油・石炭・天然ガスのように、大昔の生物の死がいなどからできた燃料を何という？",
+   a:"化石燃料", accept:["化石燃料","かせきねんりょう","化石"],
+   hints:["燃やすと二酸化炭素を出し、いつかはなくなる資源だよ。","「◯◯燃料」、恐竜の骨などにも使う言葉だよ。"],
+   note:"化石燃料にかわるものとして、再生可能エネルギーが注目されているよ。"},
+  {u:"c4", q:"発展途上国の農産物などを、生産者のくらしが成り立つ適正な価格で取り引きすることを何という？",
+   a:"フェアトレード", accept:["フェアトレード","フェアトレイド"],
+   hints:["「公正な貿易」という意味の英語だよ。","カタカナで「フェア」から始まるよ。"],
+   note:"コーヒーやチョコレートなどで、フェアトレードの商品が売られているよ。"},
+  {u:"c4", q:"アジア太平洋地域の国々が、経済協力を進めるための会議を、アルファベットの略称で何という？",
+   a:"APEC", accept:["apec","エーペック","エイペック","アジア太平洋経済協力"],
+   hints:["日本やアメリカ、中国、オーストラリアなどが参加しているよ。","アルファベット4文字で、「A」から始まるよ。ASEANではないよ。"],
+   note:"日本語では、アジア太平洋経済協力というよ。"},
+  {u:"c4", q:"核兵器をもつ国が、これ以上増えないようにすることを目的とした条約を何という？",
+   a:"核拡散防止条約", accept:["核拡散防止条約","かくかくさんぼうしじょうやく","核拡散防止","核不拡散条約","核不拡散","npt"],
+   hints:["アルファベットではNPTというよ。","「核◯◯防止条約」、広がるという意味の言葉が入るよ。"],
+   note:"2017年には、核兵器の開発や保有を禁止する核兵器禁止条約も採択されたよ。"},
+  {u:"c4", q:"紛争や迫害などのために、住んでいた国をはなれて、ほかの国にのがれた人々を何という？",
+   a:"難民", accept:["難民","なんみん"],
+   hints:["国連難民高等弁務官事務所（UNHCR）が支援しているよ。","ひらがな4文字で「なん◯◯」だよ。"],
+   note:"シリアや南スーダン、ウクライナなどから、多くの難民が生まれているよ。"},
+  {u:"c4", q:"政治的な目的のために、一般の人々をまきこむ暴力で人々を恐れさせる行為を何という？",
+   a:"テロリズム", accept:["テロリズム","テロ"],
+   hints:["2001年には、アメリカで同時多発◯◯が起きたよ。","カタカナ2文字の略称でもよばれるよ。"],
+   note:"テロを防ぐには、国どうしの協力が欠かせないよ。"},
+  {u:"c4", q:"ちがう国や民族の人々が、おたがいの文化のちがいを認め合って、ともに生きていくことを何という？",
+   a:"多文化共生", accept:["多文化共生","たぶんかきょうせい","多文化"],
+   hints:["日本でくらす外国人が増えて、より大切になっているよ。","「多文化◯◯」、ともに生きるという意味の言葉が入るよ。"],
+   note:"外国語での案内表示を増やすことも、そのための取り組みのひとつだよ。"},
+  {u:"c4", q:"すべての人が、安全に安心して生きられるように、一人ひとりの人間に注目して安全を守るという考え方を何という？",
+   a:"人間の安全保障", accept:["人間の安全保障","にんげんのあんぜんほしょう","人間の安全"],
+   hints:["国を守る「国家の安全保障」とならぶ考え方だよ。","「◯◯の安全保障」だよ。"],
+   note:"貧困や感染症、災害なども、人間の安全をおびやかすものと考えるよ。"},
+  {u:"c4", q:"国と国との間で結ばれる、文書による約束を何という？",
+   a:"条約", accept:["条約","じょうやく"], ng:["条例","じょうれい"],
+   hints:["国際法のひとつだよ。","ひらがな4文字で「じょう◯◯」だよ。条例ではないよ。"],
+   note:"条約を結ぶのは内閣で、それを承認するのは国会の仕事だよ。"}
+];
+
+/* ---------- 読み方の辞書（読み上げのときだけ置き換える） ---------- */
+const READINGS = {
+  /* ことば全般 */
+  "何という":"なんという", "何度":"なんど", "何で":"なんで", "何の":"なんの", "言葉":"ことば", "入る":"はいる",
+  "一人ひとり":"ひとりひとり", "一人":"ひとり", "最低限度":"さいていげんど", "大昔":"おおむかし",
+  /* 地理 */
+  "緯度":"いど", "経度":"けいど", "緯線":"いせん", "経線":"けいせん", "本初子午線":"ほんしょしごせん", "子午線":"しごせん",
+  "旧グリニッジ天文台":"きゅうグリニッジてんもんだい", "明石市":"あかしし", "日付変更線":"ひづけへんこうせん",
+  "六大陸":"ろくたいりく", "三大洋":"さんたいよう", "正距方位図法":"せいきょほういずほう", "図法":"ずほう",
+  "乾燥帯":"かんそうたい", "冷帯":"れいたい", "亜寒帯":"あかんたい", "寒帯":"かんたい", "針葉樹":"しんようじゅ",
+  "高山気候":"こうざんきこう", "標高":"ひょうこう", "聖地":"せいち", "三大宗教":"さんだいしゅうきょう",
+  "海里":"かいり", "排他的経済水域":"はいたてきけいざいすいいき", "沖ノ鳥島":"おきのとりしま", "択捉島":"えとろふとう",
+  "国後島":"くなしりとう", "色丹島":"しこたんとう", "歯舞群島":"はぼまいぐんとう", "北方領土":"ほっぽうりょうど",
+  "領海":"りょうかい", "領空":"りょうくう", "護岸工事":"ごがんこうじ",
+  "ASEAN":"アセアン", "APEC":"エーペック", "ICT":"アイシーティー", "EU":"イーユー",
+  "経済特区":"けいざいとっく", "漢民族":"かんみんぞく", "少数民族":"しょうすうみんぞく", "産油国":"さんゆこく",
+  "混合農業":"こんごうのうぎょう", "酪農":"らくのう", "地中海式農業":"ちちゅうかいしきのうぎょう", "大農園":"だいのうえん",
+  "適地適作":"てきちてきさく", "食料庫":"しょくりょうこ", "北緯":"ほくい", "南緯":"なんい", "東経":"とうけい", "西経":"せいけい",
+  "焼畑農業":"やきはたのうぎょう", "流域":"りゅういき", "白豪主義":"はくごうしゅぎ", "先住民":"せんじゅうみん",
+  "環太平洋造山帯":"かんたいへいようぞうざんたい", "造山帯":"ぞうざんたい", "扇状地":"せんじょうち", "甲府盆地":"こうふぼんち",
+  "三角州":"さんかくす", "三陸海岸":"さんりくかいがん", "志摩半島":"しまはんとう", "季節風":"きせつふう", "梅雨":"つゆ",
+  "過密":"かみつ", "過疎":"かそ", "離島":"りとう", "少子高齢化":"しょうしこうれいか", "中京工業地帯":"ちゅうきょうこうぎょうちたい",
+  "豊田市":"とよたし", "近郊農業":"きんこうのうぎょう", "促成栽培":"そくせいさいばい", "抑制栽培":"よくせいさいばい",
+  "宮崎平野":"みやざきへいや", "高知平野":"こうちへいや", "養殖業":"ようしょくぎょう", "稚魚":"ちぎょ", "栽培漁業":"さいばいぎょぎょう",
+  "食料自給率":"しょくりょうじきゅうりつ", "第三次産業":"だいさんじさんぎょう", "第一次":"だいいちじ", "第二次":"だいにじ",
+  "シラス台地":"シラスだいち", "畜産":"ちくさん", "米軍基地":"べいぐんきち", "沖縄島":"おきなわじま",
+  "瀬戸内海":"せとないかい", "瀬戸内工業地域":"せとうちこうぎょうちいき", "塩田":"えんでん", "倉敷市":"くらしきし", "水島地区":"みずしまちく",
+  "本州四国連絡橋":"ほんしゅうしこくれんらくきょう", "瀬戸大橋":"せとおおはし", "明石海峡大橋":"あかしかいきょうおおはし",
+  "琵琶湖":"びわこ", "水がめ":"みずがめ", "阪神工業地帯":"はんしんこうぎょうちたい", "東大阪市":"ひがしおおさかし",
+  "飛騨山脈":"ひださんみゃく", "木曽山脈":"きそさんみゃく", "赤石山脈":"あかいしさんみゃく", "日本の屋根":"にほんのやね",
+  "地場産業":"じばさんぎょう", "鯖江市":"さばえし", "輪島塗":"わじまぬり", "関東ローム":"かんとうローム", "浅間山":"あさまやま",
+  "京浜工業地帯":"けいひんこうぎょうちたい", "昼間人口":"ちゅうかんじんこう", "夜間人口":"やかんじんこう", "冷害":"れいがい",
+  "灯籠":"とうろう", "ねぶた祭":"ねぶたまつり", "竿燈まつり":"かんとうまつり", "七夕まつり":"たなばたまつり",
+  "南部鉄器":"なんぶてっき", "天童将棋駒":"てんどうしょうぎこま", "伝統的工芸品":"でんとうてきこうげいひん",
+  "十勝平野":"とかちへいや", "輪作":"りんさく", "根釧台地":"こんせんだいち", "生乳":"せいにゅう", "官営":"かんえい",
+  "八幡製鉄所":"やはたせいてつしょ", "筑豊炭田":"ちくほうたんでん", "北九州工業地帯":"きたきゅうしゅうこうぎょうちたい",
+  "鳥取砂丘":"とっとりさきゅう", "砂丘":"さきゅう",
+  /* 歴史 */
+  "縄文":"じょうもん", "弥生":"やよい", "土器":"どき", "貝塚":"かいづか", "大森貝塚":"おおもりかいづか", "稲作":"いなさく",
+  "高床倉庫":"たかゆかそうこ", "登呂遺跡":"とろいせき", "邪馬台国":"やまたいこく", "卑弥呼":"ひみこ", "魏":"ぎ",
+  "親魏倭王":"しんぎわおう", "銅鏡":"どうきょう", "豪族":"ごうぞく", "古墳":"こふん", "大仙古墳":"だいせんこふん",
+  "前方後円墳":"ぜんぽうこうえんふん", "埴輪":"はにわ", "土偶":"どぐう", "渡来人":"とらいじん", "須恵器":"すえき",
+  "聖徳太子":"しょうとくたいし", "冠位十二階":"かんいじゅうにかい", "十七条の憲法":"じゅうしちじょうのけんぽう",
+  "儒教":"じゅきょう", "法隆寺":"ほうりゅうじ", "斑鳩":"いかるが", "飛鳥文化":"あすかぶんか",
+  "中大兄皇子":"なかのおおえのおうじ", "中臣鎌足":"なかとみのかまたり", "蘇我氏":"そがし", "大化の改新":"たいかのかいしん",
+  "公地・公民":"こうち、こうみん", "大宝律令":"たいほうりつりょう", "律令国家":"りつりょうこっか", "唐":"とう", "長安":"ちょうあん",
+  "平城京":"へいじょうきょう", "碁盤":"ごばん", "戸籍":"こせき", "口分田":"くぶんでん", "班田収授法":"はんでんしゅうじゅのほう",
+  "租":"そ", "墾田永年私財法":"こんでんえいねんしざいのほう", "永年":"えいねん", "荘園":"しょうえん", "寺社":"じしゃ",
+  "聖武天皇":"しょうむてんのう", "大仏":"だいぶつ", "東大寺":"とうだいじ", "正倉院":"しょうそういん", "国分寺":"こくぶんじ", "国分尼寺":"こくぶんにじ",
+  "桓武天皇":"かんむてんのう", "平安京":"へいあんきょう", "摂政":"せっしょう", "関白":"かんぱく", "摂関政治":"せっかんせいじ",
+  "藤原氏":"ふじわらし", "藤原道長":"ふじわらのみちなが", "頼通":"よりみち", "紫式部":"むらさきしきぶ", "光源氏":"ひかるげんじ",
+  "源氏物語":"げんじものがたり", "清少納言":"せいしょうなごん", "枕草子":"まくらのそうし",
+  "平清盛":"たいらのきよもり", "太政大臣":"だじょうだいじん", "宋":"そう", "平氏":"へいし", "源氏":"げんじ", "壇ノ浦":"だんのうら",
+  "征夷大将軍":"せいいたいしょうぐん", "源頼朝":"みなもとのよりとも", "頼朝":"よりとも", "義経":"よしつね",
+  "守護":"しゅご", "地頭":"じとう", "御家人":"ごけにん", "御恩":"ごおん", "奉公":"ほうこう", "いざ鎌倉":"いざかまくら",
+  "執権":"しっけん", "北条氏":"ほうじょうし", "政子":"まさこ", "北条政子":"ほうじょうまさこ", "執権政治":"しっけんせいじ",
+  "後鳥羽上皇":"ごとばじょうこう", "承久の乱":"じょうきゅうのらん", "六波羅探題":"ろくはらたんだい",
+  "北条泰時":"ほうじょうやすとき", "御成敗式目":"ごせいばいしきもく", "貞永式目":"じょうえいしきもく", "武家":"ぶけ",
+  "フビライ・ハン":"フビライハン", "元の軍":"げんのぐん", "元が":"げんが", "元寇":"げんこう", "文永の役":"ぶんえいのえき", "弘安の役":"こうあんのえき",
+  "北条時宗":"ほうじょうときむね", "永仁の徳政令":"えいにんのとくせいれい", "徳政令":"とくせいれい", "帳消し":"ちょうけし",
+  "南無阿弥陀仏":"なむあみだぶつ", "念仏":"ねんぶつ", "浄土宗":"じょうどしゅう", "浄土真宗":"じょうどしんしゅう",
+  "法然":"ほうねん", "親鸞":"しんらん", "後醍醐天皇":"ごだいごてんのう", "建武の新政":"けんむのしんせい",
+  "足利尊氏":"あしかがたかうじ", "尊氏":"たかうじ", "北朝":"ほくちょう", "南朝":"なんちょう", "吉野":"よしの", "南北朝":"なんぼくちょう",
+  "足利義満":"あしかがよしみつ", "義満":"よしみつ", "金閣":"きんかく", "北山文化":"きたやまぶんか", "明と":"みんと", "明との":"みんとの",
+  "倭寇":"わこう", "勘合貿易":"かんごうぼうえき", "日明貿易":"にちみんぼうえき", "銅銭":"どうせん",
+  "応仁の乱":"おうにんのらん", "足利義政":"あしかがよしまさ", "義政":"よしまさ", "下剋上":"げこくじょう", "戦国大名":"せんごくだいみょう",
+  "土一揆":"つちいっき", "正長":"しょうちょう", "近江":"おうみ", "馬借":"ばしゃく", "百姓一揆":"ひゃくしょういっき", "一揆":"いっき",
+  "東山":"ひがしやま", "銀閣":"ぎんかく", "東山文化":"ひがしやまぶんか", "書院造":"しょいんづくり",
+  "観阿弥":"かんあみ", "世阿弥":"ぜあみ", "狂言":"きょうげん",
+  "種子島":"たねがしま", "鉄砲":"てっぽう", "堺":"さかい", "宣教師":"せんきょうし", "キリシタン大名":"キリシタンだいみょう",
+  "織田信長":"おだのぶなが", "安土":"あづち", "城下町":"じょうかまち", "座の":"ざの", "楽市・楽座":"らくいち、らくざ",
+  "長篠の戦い":"ながしののたたかい", "武田氏":"たけだし", "騎馬隊":"きばたい", "足軽":"あしがる",
+  "豊臣秀吉":"とよとみひでよし", "石高":"こくだか", "太閤検地":"たいこうけんち", "検地帳":"けんちちょう", "年貢":"ねんぐ",
+  "刀狩":"かたながり", "兵農分離":"へいのうぶんり", "徳川家康":"とくがわいえやす", "石田三成":"いしだみつなり",
+  "天下分け目":"てんかわけめ", "関ヶ原の戦い":"せきがはらのたたかい", "関ヶ原":"せきがはら",
+  "武家諸法度":"ぶけしょはっと", "参勤交代":"さんきんこうたい", "徳川家光":"とくがわいえみつ",
+  "迫害":"はくがい", "島原・天草一揆":"しまばら、あまくさいっき", "天草四郎":"あまくさしろう", "鎖国":"さこく",
+  "琉球":"りゅうきゅう", "出島":"でじま", "徳川吉宗":"とくがわよしむね", "享保の改革":"きょうほうのかいかく",
+  "目安箱":"めやすばこ", "公事方御定書":"くじかたおさだめがき", "老中":"ろうじゅう", "松平定信":"まつだいらさだのぶ",
+  "寛政の改革":"かんせいのかいかく", "元の濁りの田沼恋しき":"もとのにごりの、たぬまこいしき", "水野忠邦":"みずのただくに",
+  "株仲間":"かぶなかま", "天保の改革":"てんぽうのかいかく", "大塩平八郎":"おおしおへいはちろう", "三大改革":"さんだいかいかく",
+  "杉田玄白":"すぎたげんぱく", "解剖書":"かいぼうしょ", "解体新書":"かいたいしんしょ", "蘭学":"らんがく",
+  "伊能忠敬":"いのうただたか", "大日本沿海輿地全図":"だいにほんえんかいよちぜんず", "浦賀":"うらが", "来航":"らいこう",
+  "下田":"しもだ", "函館":"はこだて", "日米和親条約":"にちべいわしんじょうやく", "日米修好通商条約":"にちべいしゅうこうつうしょうじょうやく",
+  "領事裁判権":"りょうじさいばんけん", "関税自主権":"かんぜいじしゅけん", "大老":"たいろう", "井伊直弼":"いいなおすけ",
+  "徳川慶喜":"とくがわよしのぶ", "大政奉還":"たいせいほうかん", "王政復古の大号令":"おうせいふっこのだいごうれい",
+  "廃藩置県":"はいはんちけん", "府知事":"ふちじ", "県令":"けんれい", "地価":"ちか", "地券":"ちけん", "地租改正":"ちそかいせい",
+  "富国強兵":"ふこくきょうへい", "富岡製糸場":"とみおかせいしじょう", "殖産興業":"しょくさんこうぎょう",
+  "板垣退助":"いたがきたいすけ", "民撰議院設立の建白書":"みんせんぎいんせつりつのけんぱくしょ", "自由民権運動":"じゆうみんけんうんどう",
+  "大隈重信":"おおくましげのぶ", "立憲改進党":"りっけんかいしんとう", "大日本帝国憲法":"だいにほんていこくけんぽう",
+  "伊藤博文":"いとうひろぶみ", "草案":"そうあん", "帝国議会":"ていこくぎかい",
+  "日本と清":"にほんとしん", "日清戦争":"にっしんせんそう", "下関条約":"しものせきじょうやく", "賠償金":"ばいしょうきん",
+  "三国干渉":"さんごくかんしょう", "遼東半島":"りょうとうはんとう", "日露戦争":"にちろせんそう", "満州":"まんしゅう",
+  "与謝野晶子":"よさのあきこ", "君死にたまふことなかれ":"きみしにたもうことなかれ",
+  "小村寿太郎":"こむらじゅたろう", "陸奥宗光":"むつむねみつ", "撤廃":"てっぱい", "日英同盟":"にちえいどうめい",
+  "第一次世界大戦":"だいいちじせかいたいせん", "第二次世界大戦":"だいにじせかいたいせん", "参戦":"さんせん",
+  "普通選挙法":"ふつうせんきょほう", "治安維持法":"ちあんいじほう", "世界恐慌":"せかいきょうこう",
+  "関東軍":"かんとうぐん", "南満州鉄道":"みなみまんしゅうてつどう", "満州事変":"まんしゅうじへん", "国際連盟":"こくさいれんめい",
+  "青年将校":"せいねんしょうこう", "首相官邸":"しゅしょうかんてい", "犬養毅":"いぬかいつよし",
+  "五・一五事件":"ごいちごじけん", "二・二六事件":"ににろくじけん", "地主":"じぬし", "小作人":"こさくにん", "自作農":"じさくのう",
+  "財閥解体":"ざいばつかいたい", "日米安全保障条約":"にちべいあんぜんほしょうじょうやく", "石油危機":"せきゆきき",
+  "水俣病":"みなまたびょう", "日中共同声明":"にっちゅうきょうどうせいめい",
+  /* 公民 */
+  "情報モラル":"じょうほうモラル", "国際分業":"こくさいぶんぎょう", "公布":"こうふ", "施行":"しこう", "最高法規":"さいこうほうき",
+  "象徴":"しょうちょう", "国事行為":"こくじこうい", "発議":"はつぎ", "総議員":"そうぎいん", "過半数":"かはんすう",
+  "非核三原則":"ひかくさんげんそく", "被爆国":"ひばくこく", "第9条":"だいきゅうじょう", "第25条":"だいにじゅうごじょう",
+  "平等権":"びょうどうけん", "法の下":"ほうのもと", "男女雇用機会均等法":"だんじょこようきかいきんとうほう",
+  "信教":"しんきょう", "生存権":"せいぞんけん", "団結権":"だんけつけん", "労働三権":"ろうどうさんけん",
+  "団体交渉権":"だんたいこうしょうけん", "団体行動権":"だんたいこうどうけん", "参政権":"さんせいけん", "国民審査":"こくみんしんさ",
+  "日照権":"にっしょうけん", "環境権":"かんきょうけん", "患者":"かんじゃ", "自己決定権":"じこけってい けん", "臓器":"ぞうき",
+  "公共の福祉":"こうきょうのふくし", "採択":"さいたく",
+  "二院制":"にいんせい", "両院制":"りょういんせい", "衆議院":"しゅうぎいん", "参議院":"さんぎいん", "不信任":"ふしんにん",
+  "優越":"ゆうえつ", "先議":"せんぎ", "召集":"しょうしゅう", "常会":"じょうかい", "臨時会":"りんじかい", "特別会":"とくべつかい",
+  "議院内閣制":"ぎいんないかくせい", "連帯":"れんたい", "総辞職":"そうじしょく", "内閣総理大臣":"ないかくそうりだいじん",
+  "国務大臣":"こくむだいじん", "三権分立":"さんけんぶんりつ", "法の精神":"ほうのせいしん", "社会契約論":"しゃかいけいやくろん",
+  "違憲審査権":"いけんしんさけん", "番人":"ばんにん", "三審制":"さんしんせい", "第一審":"だいいっしん", "控訴":"こうそ", "上告":"じょうこく",
+  "民事裁判":"みんじさいばん", "刑事裁判":"けいじさいばん", "原告":"げんこく", "被告":"ひこく", "裁判員":"さいばんいん",
+  "小選挙区制":"しょうせんきょくせい", "比例代表制":"ひれいだいひょうせい", "死票":"しひょう", "与党":"よとう", "野党":"やとう",
+  "連立政権":"れんりつせいけん", "連立内閣":"れんりつないかく", "条例":"じょうれい", "改廃":"かいはい", "有権者":"ゆうけんしゃ",
+  "首長":"しゅちょう", "解職":"かいしょく", "直接請求権":"ちょくせつせいきゅうけん", "地方交付税交付金":"ちほうこうふぜいこうふきん",
+  "国庫支出金":"こっこししゅつきん", "地方公共団体":"ちほうこうきょうだんたい",
+  "契約":"けいやく", "製造物責任法":"せいぞうぶつせきにんほう", "PL法":"ピーエルほう", "過失":"かしつ", "損害賠償":"そんがいばいしょう",
+  "消費者契約法":"しょうひしゃけいやくほう", "卸売業者":"おろしうりぎょうしゃ", "小売業者":"こうりぎょうしゃ", "流通":"りゅうつう",
+  "株式会社":"かぶしきがいしゃ", "株主総会":"かぶぬしそうかい", "株主":"かぶぬし", "株式":"かぶしき", "配当":"はいとう",
+  "労働基準法":"ろうどうきじゅんほう", "労働組合法":"ろうどうくみあいほう", "労働関係調整法":"ろうどうかんけいちょうせいほう",
+  "需要量":"じゅようりょう", "供給量":"きょうきゅうりょう", "需要曲線":"じゅようきょくせん", "供給曲線":"きょうきゅうきょくせん",
+  "均衡価格":"きんこうかかく", "独占":"どくせん", "寡占":"かせん", "公正取引委員会":"こうせいとりひきいいんかい", "独占禁止法":"どくせんきんしほう",
+  "公共料金":"こうきょうりょうきん", "日本銀行":"にほんぎんこう", "発券銀行":"はっけんぎんこう", "国債":"こくさい", "金融政策":"きんゆうせいさく",
+  "財政政策":"ざいせいせいさく", "歳出":"さいしゅつ", "社会保障関係費":"しゃかいほしょうかんけいひ", "直接税":"ちょくせつぜい", "間接税":"かんせつぜい",
+  "累進課税":"るいしんかぜい", "逆進性":"ぎゃくしんせい", "公的扶助":"こうてきふじょ", "公衆衛生":"こうしゅうえいせい",
+  "円高":"えんだか", "円安":"えんやす", "1ドル":"いちドル",
+  "主権":"しゅけん", "国際連合":"こくさいれんごう", "安全保障理事会":"あんぜんほしょうりじかい", "安保理":"あんぽり",
+  "常任理事国":"じょうにんりじこく", "非常任理事国":"ひじょうにんりじこく", "拒否権":"きょひけん",
+  "PKO":"ピーケーオー", "平和維持活動":"へいわいじかつどう", "国連教育科学文化機関":"こくれんきょういくかがくぶんかきかん", "国連児童基金":"こくれんじどうききん",
+  "ODA":"オーディーエー", "政府開発援助":"せいふかいはつえんじょ", "青年海外協力隊":"せいねんかいがいきょうりょくたい",
+  "南北問題":"なんぼくもんだい", "南南問題":"なんなんもんだい", "SDGs":"エスディージーズ", "温室効果ガス":"おんしつこうかガス",
+  "地球温暖化":"ちきゅうおんだんか", "京都議定書":"きょうとぎていしょ", "化石燃料":"かせきねんりょう", "死がい":"しがい",
+  "核拡散防止条約":"かくかくさんぼうしじょうやく", "NPT":"エヌピーティー", "核兵器禁止条約":"かくへいききんしじょうやく",
+  "難民":"なんみん", "国連難民高等弁務官事務所":"こくれんなんみんこうとうべんむかんじむしょ", "UNHCR":"ユーエヌエイチシーアール",
+  "同時多発":"どうじたはつ", "多文化共生":"たぶんかきょうせい", "人間の安全保障":"にんげんのあんぜんほしょう"
+};
+
+/* ---------- 分野×単元 ---------- */
+const FIELDS = [["g","地理"],["h","歴史"],["c","公民"]];
+const UNIT_NO = ["1","2","3","4"];
+const UNITS = {
+  "g1":"世界と日本\nのすがた", "g2":"世界の\n諸地域", "g3":"日本の\n自然と産業", "g4":"日本の\n諸地域",
+  "h1":"原始・古代\n〜平安", "h2":"中世\n鎌倉・室町", "h3":"近世\n戦国・江戸", "h4":"近代・現代\n幕末〜",
+  "c1":"人権と\n日本国憲法", "c2":"政治の\nしくみ", "c3":"経済の\nしくみ", "c4":"国際社会と\n地球の課題"
+};
+/* 範囲の短い名前（スタートボタンの下の説明や、出題中の表示に使う） */
+const UNIT_SHORT = {
+  "g1":"世界と日本のすがた", "g2":"世界の諸地域", "g3":"日本の自然と産業", "g4":"日本の諸地域",
+  "h1":"原始・古代", "h2":"中世", "h3":"近世", "h4":"近代・現代",
+  "c1":"人権と憲法", "c2":"政治", "c3":"経済", "c4":"国際社会"
+};
+const FIELD_NAME = Object.fromEntries(FIELDS);
+/* 答えのふりがな：ふつうは accept の中のひらがなを使う。カタカナなどがまざる答えはここで指定 */
+const YOMI = {
+  "135度":"ひゃくさんじゅうごど", "ユーラシア大陸":"ユーラシアたいりく", "メルカトル図法":"メルカトルずほう",
+  "イスラム教":"イスラムきょう", "キリスト教":"キリストきょう", "ICT産業":"アイシーティーさんぎょう",
+  "モノカルチャー経済":"モノカルチャーけいざい", "焼畑農業":"やきはたのうぎょう", "アンデス山脈":"アンデスさんみゃく",
+  "リアス海岸":"リアスかいがん", "再生可能エネルギー":"さいせいかのうエネルギー", "太平洋ベルト":"たいへいようベルト",
+  "中京工業地帯":"ちゅうきょうこうぎょうちたい", "第三次産業":"だいさんじさんぎょう", "シラス台地":"シラスだいち",
+  "瀬戸内工業地域":"せとうちこうぎょうちいき", "阪神工業地帯":"はんしんこうぎょうちたい", "日本アルプス":"にほんアルプス",
+  "関東ローム":"かんとうローム", "京浜工業地帯":"けいひんこうぎょうちたい", "ヒートアイランド現象":"ヒートアイランドげんしょう",
+  "北九州工業地帯":"きたきゅうしゅうこうぎょうちたい", "ねぶた祭":"ねぶたまつり", "養殖業":"ようしょくぎょう",
+  "北条氏":"ほうじょうし", "能":"のう", "楽市・楽座":"らくいち・らくざ", "関ヶ原の戦い":"せきがはらのたたかい",
+  "島原・天草一揆":"しまばら・あまくさいっき", "五・一五事件":"ご・いちご じけん", "沖縄県":"おきなわけん",
+  "サンフランシスコ平和条約":"サンフランシスコへいわじょうやく", "グローバル化":"グローバルか", "情報リテラシー":"じょうほうリテラシー",
+  "プライバシーの権利":"プライバシーのけんり", "地方交付税交付金":"ちほうこうふぜいこうふきん", "パリ協定":"パリきょうてい",
+  "PL法":"ピーエルほう"
+};
+function yomiOf(q){
+  if (!/[一-龯々ヶ]/.test(q.a)) return "";
+  return YOMI[q.a] || q.accept.find(a=>/^[ぁ-ゖー]+$/.test(a)) || "";
+}
+function answerNode(q){
+  const y = yomiOf(q);
+  if (!y) return document.createTextNode(q.a);
+  const r = document.createElement("ruby"); r.className = "ans";
+  r.append(q.a);
+  const rt = document.createElement("rt"); rt.textContent = y;
+  r.append(rt);
+  return r;
+}
+function showAnswer(prefix, q){
+  $("result").replaceChildren(document.createTextNode(prefix), answerNode(q));
+}
+
+QUESTIONS.forEach(q=>{ q.id = q.u + ":" + q.a; });
+function unitLabel(u){ return FIELD_NAME[u[0]] + "・" + UNIT_SHORT[u]; }
+
+/* ---------- 記録（この端末のブラウザに保存） ---------- */
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem("momijiSocial." + k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem("momijiSocial." + k, JSON.stringify(v)); }catch(e){} }
+};
+let savedRange = store.get("range", null);
+let sel = new Set(savedRange || []);
+let missed = new Set(store.get("missed", []));
+const params = new URLSearchParams(location.search);
+if (params.get("range")){
+  const r = params.get("range").split(/[,\s]+/).filter(u=>UNITS[u]);
+  if (r.length) sel = new Set(r);
+}
+let qCount = Number(store.get("count", 10));
+if (params.get("n") && !isNaN(Number(params.get("n")))) qCount = Number(params.get("n"));
+
+const PRAISE = ["正解！すごいね。","正解！よく覚えているね。","その通り！","ばっちり正解！"];
+const $ = id => document.getElementById(id);
+const chara = $("chara");
+let order = [], idx = 0, score = 0, tries = 0, done = false, rec = null, listening = false, misses = 0;
+let mode = "normal", lastMode = "normal", roundMissed = [];
+
+/* ---------- 文字のそろえ（カタカナ→ひらがな、空白や記号を除く） ---------- */
+function norm(s){
+  return (s||"").replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60))
+    .replace(/[\s、。．，,.！!？?「」ー〜~・]/g,"").toLowerCase();
+}
+
+/* ---------- 読み上げ ---------- */
+let jaVoice = null;
+function pickVoice(){
+  const vs = speechSynthesis.getVoices().filter(v=>/^ja/i.test(v.lang));
+  jaVoice = vs.find(v=>/google|kyoko|nanami|haruka/i.test(v.name)) || vs[0] || null;
+}
+if ("speechSynthesis" in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+
+const READING_KEYS = Object.keys(READINGS).sort((a,b)=>b.length-a.length);
+function toReading(text){
+  let s = text;
+  for (const k of READING_KEYS) s = s.split(k).join(READINGS[k]);
+  return s.replace(/◯+/g, "ほにゃらら");
+}
+
+function say(text, show=true){
+  if (show) $("bubble").textContent = text;
+  return new Promise(resolve=>{
+    if (!("speechSynthesis" in window)){ resolve(); return; }
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(toReading(text));
+    u.lang = "ja-JP"; u.rate = 0.95; u.pitch = 1.0;
+    if (jaVoice) u.voice = jaVoice;
+    let finished = false;
+    const end = ()=>{ if(finished) return; finished = true; chara.classList.remove("talking"); resolve(); };
+    u.onstart = ()=>chara.classList.add("talking");
+    u.onend = end; u.onerror = end;
+    // 一部のタブレットで終了通知が来ないことへの保険
+    setTimeout(end, 1500 + text.length * 220);
+    chara.classList.add("talking");
+    speechSynthesis.speak(u);
+  });
+}
+function hush(){
+  if ("speechSynthesis" in window) speechSynthesis.cancel();
+  chara.classList.remove("talking");
+}
+
+function mood(m){ chara.classList.remove("happy","think"); if(m) chara.classList.add(m); }
+
+/* ---------- 範囲えらびの表 ---------- */
+function poolOf(units){ return QUESTIONS.filter(q=>units.has(q.u)); }
+function reviewPool(){
+  const scope = sel.size ? sel : new Set(Object.keys(UNITS));
+  return QUESTIONS.filter(q=>scope.has(q.u) && missed.has(q.id));
+}
+function sameAsSaved(){
+  if (!savedRange || !savedRange.length) return false;
+  return [...sel].sort().join() === [...savedRange].sort().join();
+}
+function rangeSummary(units){
+  const parts = [];
+  for (const [f,fname] of FIELDS){
+    const us = UNIT_NO.map(n=>f+n).filter(u=>units.has(u));
+    if (!us.length) continue;
+    parts.push(fname + (us.length === UNIT_NO.length ? " 全部" : " " + us.map(u=>UNIT_SHORT[u]).join("・")));
+  }
+  return parts.join("／");
+}
+
+function buildGrid(){
+  const grid = $("grid"); grid.replaceChildren();
+  const mk = (cls, html, onclick, label)=>{
+    const b = document.createElement("button"); b.type = "button"; b.className = cls;
+    b.innerHTML = html; b.onclick = onclick; if (label) b.setAttribute("aria-label", label);
+    grid.append(b); return b;
+  };
+  mk("hd", "全部", ()=>toggleSet(Object.keys(UNITS)), "全部の範囲を選ぶ・外す");
+  const cap = document.createElement("span"); cap.className = "cap";
+  cap.textContent = "単元をタップ（いくつでも選べるよ）";
+  grid.append(cap);
+  for (const [f,fname] of FIELDS){
+    mk("hd row", fname, ()=>toggleSet(UNIT_NO.map(n=>f+n)), fname + "をまとめて選ぶ・外す");
+    for (const n of UNIT_NO){
+      const u = f+n, cnt = QUESTIONS.filter(q=>q.u===u).length;
+      const b = mk("cell", "", ()=>{ sel.has(u) ? sel.delete(u) : sel.add(u); refreshSetup(); }, fname + "：" + UNITS[u].replace("\n",""));
+      b.dataset.u = u;
+      const t = document.createElement("span"); t.textContent = UNITS[u];
+      const s = document.createElement("small"); s.textContent = cnt + "問";
+      b.append(t, s);
+    }
+  }
+}
+function toggleSet(units){
+  const allOn = units.every(u=>sel.has(u));
+  units.forEach(u=> allOn ? sel.delete(u) : sel.add(u));
+  refreshSetup();
+}
+function refreshSetup(){
+  document.querySelectorAll("#grid .cell").forEach(b=>b.setAttribute("aria-pressed", sel.has(b.dataset.u) ? "true" : "false"));
+  const n = poolOf(sel).length;
+  const sb = $("startBtn");
+  if (!sel.size){
+    sb.disabled = true; sb.firstChild.textContent = "スタート";
+    $("startSub").textContent = "表から範囲を選んでね";
+  } else {
+    sb.disabled = false;
+    sb.firstChild.textContent = sameAsSaved() ? "前回と同じ範囲でスタート" : "この範囲でスタート";
+    $("startSub").textContent = rangeSummary(sel) + "（" + n + "問から出題）";
+  }
+  const r = reviewPool().length;
+  $("reviewBtn").disabled = r === 0;
+  $("reviewSub").textContent = r ? (sel.size ? "選んだ範囲で " : "全範囲で ") + r + "問" : "まだありません";
+}
+
+/* ---------- 音声認識 ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+function showNotice(t){ $("notice").textContent = t; $("notice").hidden = false; }
+let canSR = false;
+try { canSR = !!SR && window.top === window; } catch(e){ canSR = false; }
+if (!canSR) $("autoLabel").hidden = true;
+
+function setListening(on){
+  listening = on;
+  $("status").classList.toggle("listening", on);
+  $("answerBtn").textContent = on ? "聞いています…" : "こたえる";
+  $("answerBtn").disabled = on;
+}
+
+function listen(fromTap){
+  if (!canSR || listening || done) return;
+  speechSynthesis.cancel();
+  rec = new SR();
+  rec.lang = "ja-JP"; rec.interimResults = true; rec.maxAlternatives = 5; rec.continuous = false;
+  let gotFinal = false, errored = false;
+  $("heard").textContent = "話してください…";
+  rec.onresult = e=>{
+    const r = e.results[e.results.length-1];
+    $("heard").innerHTML = "";
+    const lab = document.createTextNode("聞こえた答え：");
+    const st = document.createElement("strong"); st.textContent = r[0].transcript;
+    $("heard").append(lab, st);
+    if (r.isFinal){
+      gotFinal = true;
+      const alts = Array.from(r).map(x=>x.transcript);
+      judge(alts);
+    }
+  };
+  rec.onerror = e=>{
+    setListening(false);
+    if (e.error !== "no-speech") errored = true;
+    const blocked = e.error === "not-allowed" || e.error === "service-not-allowed";
+    if (blocked && !fromTap){
+      $("answerBtn").hidden = false;
+      $("heard").textContent = "「こたえる」を押してから話してね";
+      return;
+    }
+    if (e.error !== "no-speech" && e.error !== "aborted") showNotice("聞きとりエラー（" + e.error + "）");
+    if (blocked){
+      $("heard").textContent = "マイクが使えませんでした。先生用ボタンで進めてください";
+    } else if (e.error === "network"){
+      showNotice("聞きとりにはインターネット接続が必要です。");
+    }
+  };
+  rec.onend = ()=>{
+    setListening(false);
+    if (!gotFinal && !done && !errored && order.length){
+      misses++;
+      $("heard").textContent = "聞きとれませんでした。「こたえる」でもう一度";
+      say("ごめんね、よく聞こえなかったよ。もう一度言ってみて。", false)
+        .then(()=>{ if ($("autoListen").checked && !done && misses <= 1) listen(); });
+    }
+  };
+  setListening(true);
+  try { rec.start(); } catch(err){ setListening(false); }
+}
+function stopListening(){
+  if (rec) try{ rec.onend = null; rec.abort(); }catch(e){}
+  setListening(false);
+}
+
+/* ---------- 判定 ---------- */
+function judge(alts){
+  if (done) return;
+  isRight(alts) ? correct() : wrong();
+}
+
+function isRight(alts){
+  const q = order[idx];
+  const keys = q.accept.map(norm), ng = (q.ng||[]).map(norm);
+  return alts.some(a=>{
+    const n = norm(a);
+    return n && !ng.some(k=>n.includes(k)) && keys.some(k=>n.includes(k));
+  });
+}
+
+let typeTimer = null;
+function submitTyped(){
+  clearTimeout(typeTimer);
+  const inp = $("answerInput"); const v = inp.value.trim();
+  if (!v || done) return;
+  inp.value = ""; inp.blur();
+  judge([v]);
+}
+
+function markMissed(q){
+  missed.add(q.id); store.set("missed", [...missed]);
+  if (!roundMissed.includes(q)) roundMissed.push(q);
+}
+
+function correct(){
+  if (done) return;
+  done = true; score++; $("score").textContent = score;
+  const q = order[idx];
+  if (tries === 0 && missed.has(q.id)){ missed.delete(q.id); store.set("missed", [...missed]); }
+  mood("happy");
+  $("result").className = "result good";
+  showAnswer("正解！ 答え：", q);
+  $("hint").hidden = false; $("hint").textContent = q.note;
+  showAfter();
+  say(PRAISE[Math.floor(Math.random()*PRAISE.length)] + "答えは、" + q.a + "。" + q.note, false);
+}
+
+function wrong(){
+  if (done) return;
+  const q = order[idx];
+  tries++;
+  markMissed(q);
+  $("result").className = "result bad";
+  if (tries <= q.hints.length){
+    mood("think");
+    $("result").textContent = "おしい！ もう一度考えてみよう";
+    $("hint").hidden = false; $("hint").textContent = "ヒント" + tries + "：" + q.hints[tries-1];
+    say((tries===1 ? "うーん、ちがうみたい。ヒントだよ。" : "もうひとつヒント。") + q.hints[tries-1], false)
+      .then(()=>{ if ($("autoListen").checked && !done) listen(); });
+  } else {
+    reveal();
+  }
+}
+
+function reveal(){
+  if (done) return;
+  done = true;
+  const q = order[idx];
+  markMissed(q);
+  mood(null);
+  $("result").className = "result bad";
+  showAnswer("答え：", q);
+  $("hint").hidden = false; $("hint").textContent = q.note;
+  showAfter();
+  say("正解は、" + q.a + "でした。" + q.note + "次はがんばろう。", false);
+}
+
+function showAfter(){
+  stopListening();
+  $("answerBtn").hidden = true; $("revealBtn").hidden = true; $("answerForm").hidden = true;
+  $("nextBtn").hidden = false;
+  $("nextBtn").textContent = idx === order.length-1 ? "結果を見る" : "次の問題";
+}
+
+/* ---------- 進行 ---------- */
+function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+function ask(){
+  const q = order[idx];
+  done = false; tries = 0; misses = 0; mood(null);
+  $("notice").hidden = true;
+  $("qno").textContent = idx+1;
+  $("unitLabel").textContent = unitLabel(q.u) + (mode === "review" ? "（復習）" : "");
+  $("result").textContent = ""; $("hint").hidden = true;
+  $("heard").textContent = canSR ? "マイクは待機中" : "答えのらんをタップ → キーボードのマイクで話してね";
+  $("answerBtn").hidden = !canSR; $("repeatBtn").hidden = false; $("revealBtn").hidden = false;
+  $("answerForm").hidden = false; $("answerInput").value = "";
+  $("nextBtn").hidden = true;
+  say(q.q).then(()=>{ if ($("autoListen").checked && !done) listen(); });
+}
+
+function start(m){
+  mode = m || "normal";
+  let pool;
+  if (mode === "review"){
+    pool = reviewPool();
+  } else {
+    pool = poolOf(sel);
+    savedRange = [...sel]; store.set("range", savedRange);
+  }
+  if (!pool.length) return;
+  lastMode = mode;
+  order = shuffle(pool); if (qCount > 0) order = order.slice(0, qCount);
+  idx = 0; score = 0; roundMissed = [];
+  $("score").textContent = 0; $("qtotal").textContent = order.length;
+  $("setup").hidden = true; $("quiz").hidden = false; $("scoreLine").hidden = false; $("quitBtn").hidden = false;
+  $("bubble").classList.remove("compact");
+  ["againBtn","retryMissBtn","menuBtn"].forEach(id=>$(id).hidden = true);
+  $("result").textContent = ""; $("hint").hidden = true;
+  const intro = mode === "review" ? "まちがえた問題の復習をするよ。今度はばっちり答えてね。" : "それじゃあ始めるよ。答えがわかったら、声で答えてね。";
+  say(intro, true).then(()=>{ if (order.length) ask(); });
+}
+
+function next(){
+  if (idx < order.length-1){ idx++; ask(); }
+  else finish();
+}
+
+function finish(){
+  done = true;
+  stopListening();
+  mood(score >= order.length*0.7 ? "happy" : null);
+  $("answerBtn").hidden = true; $("repeatBtn").hidden = true; $("revealBtn").hidden = true; $("nextBtn").hidden = true; $("answerForm").hidden = true;
+  $("unitLabel").textContent = "結果";
+  $("result").className = "result good";
+  $("result").textContent = order.length + "問中 " + score + "問 正解";
+  $("hint").hidden = true;
+  $("againBtn").hidden = false;
+  $("retryMissBtn").hidden = roundMissed.length === 0;
+  $("menuBtn").hidden = false;
+  const msg = score === order.length ? "全問正解！ばっちりだね。"
+    : score >= order.length*0.7 ? "よくできました！まちがえた用語は、もう一度復習しておこう。"
+    : "おつかれさま。まちがえた用語は、教科書で確認しておこうね。";
+  say(order.length + "問中、" + score + "問正解。" + msg);
+}
+
+function retryRound(){
+  // 今回まちがえた問題だけを、すぐにもう一度
+  const pool = roundMissed.slice();
+  if (!pool.length) return;
+  mode = "review";
+  order = shuffle(pool); idx = 0; score = 0; roundMissed = [];
+  $("score").textContent = 0; $("qtotal").textContent = order.length;
+  ["againBtn","retryMissBtn","menuBtn"].forEach(id=>$(id).hidden = true);
+  $("result").textContent = "";
+  say("今まちがえた問題を、もう一度やってみよう。", true).then(()=>{ if (order.length) ask(); });
+}
+
+function menu(){
+  hush(); stopListening();
+  order = []; done = true; mood(null);
+  $("quiz").hidden = true; $("setup").hidden = false; $("scoreLine").hidden = true; $("quitBtn").hidden = true;
+  $("notice").hidden = true;
+  $("unitLabel").textContent = "";
+  $("bubble").classList.add("compact");
+  $("bubble").textContent = "出題する範囲を選んで「スタート」を押してね。";
+  refreshSetup();
+}
+
+/* ---------- ボタン ---------- */
+$("startBtn").onclick = ()=>start("normal");
+$("reviewBtn").onclick = ()=>start("review");
+$("againBtn").onclick = ()=> lastMode === "review" && reviewPool().length ? start("review") : start("normal");
+$("retryMissBtn").onclick = retryRound;
+$("menuBtn").onclick = menu;
+$("quitBtn").onclick = menu;
+$("answerBtn").onclick = ()=>listen(true);
+$("answerForm").addEventListener("submit", e=>{ e.preventDefault(); submitTyped(); });
+$("answerInput").addEventListener("input", e=>{
+  clearTimeout(typeTimer);
+  if (e.isComposing || done || !order.length) return;
+  const v = $("answerInput").value.trim();
+  if (!v) return;
+  const st = document.createElement("strong"); st.textContent = v;
+  $("heard").replaceChildren(document.createTextNode("聞こえた答え："), st);
+  typeTimer = setTimeout(submitTyped, isRight([v]) ? 700 : 2500);
+});
+$("answerInput").addEventListener("focus", ()=>{ if ("speechSynthesis" in window) speechSynthesis.cancel(); });
+$("repeatBtn").onclick = ()=>{ if(!done) say(order[idx].q); };
+$("revealBtn").onclick = reveal;
+$("nextBtn").onclick = next;
+$("okBtn").onclick = ()=>{ if(order.length && !done) correct(); };
+$("ngBtn").onclick = ()=>{ if(order.length && !done) wrong(); };
+
+$("autoListen").checked = !!store.get("auto", false);
+$("autoListen").onchange = ()=>store.set("auto", $("autoListen").checked);
+if (![...$("countSel").options].some(o=>o.value === String(qCount))){
+  const o = document.createElement("option"); o.value = String(qCount); o.textContent = qCount + "問"; $("countSel").append(o);
+}
+$("countSel").value = String(qCount);
+$("countSel").onchange = ()=>{ qCount = Number($("countSel").value); store.set("count", qCount); };
+
+let clearArmed = null;
+$("clearBtn").onclick = ()=>{
+  if (!clearArmed){
+    $("clearBtn").textContent = "もう一度押すと消します";
+    clearArmed = setTimeout(()=>{ clearArmed = null; $("clearBtn").textContent = "まちがい記録を消す"; }, 4000);
+    return;
+  }
+  clearTimeout(clearArmed); clearArmed = null;
+  missed.clear(); store.set("missed", []);
+  $("clearBtn").textContent = "消しました";
+  setTimeout(()=>{ $("clearBtn").textContent = "まちがい記録を消す"; }, 2000);
+  refreshSetup();
+};
+
+document.addEventListener("keydown", e=>{
+  if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
+  if (e.code === "Space" && !$("answerBtn").hidden && !$("quiz").hidden){ e.preventDefault(); listen(true); }
+  if (e.key === "Enter" && !$("nextBtn").hidden){ e.preventDefault(); next(); }
+});
+
+buildGrid();
+refreshSetup();
+
+/* iPhoneのChromeなどは下のバーがページに重ならないので、Safari用の余白をなくす */
+if (/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent)) document.documentElement.style.setProperty("--barPad","0px");
+/* スマホ縦で出題中：ボタンがちょうど1画面目の下に来るよう、出題エリアの高さを画面に合わせる */
+(function(){
+  const quiz = $("quiz");
+  const mq = matchMedia("(max-width:760px)");
+  let busy = false;
+  function fit(){
+    if (busy) return; busy = true;
+    if (mq.matches && !quiz.hidden){
+      const top = quiz.getBoundingClientRect().top + scrollY;
+      const pb = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
+      quiz.style.minHeight = Math.max(0, Math.floor(innerHeight - top - pb)) + "px";
+    } else quiz.style.minHeight = "";
+    busy = false;
+  }
+  new MutationObserver(()=>requestAnimationFrame(fit)).observe(quiz, {attributes:true, attributeFilter:["hidden"]});
+  new MutationObserver(()=>requestAnimationFrame(fit)).observe($("bubble"), {childList:true, characterData:true, subtree:true});
+  addEventListener("resize", fit);
+  if (window.visualViewport) visualViewport.addEventListener("resize", fit);
+})();
+</script>
+</body>
+</html>
